@@ -3,13 +3,14 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Gallery, MessageCircle, MapPin, Clock, CheckCircle, Languages, Star, Calendar } from "lucide-react";
+import { MessageCircle, MapPin, Clock, CheckCircle, Languages, Star, Calendar } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 // Mock data for profile
 const profileData = {
@@ -37,7 +38,7 @@ const profileData = {
     languages: ["Português", "Inglês", "Espanhol"],
     availability: "Segunda à Sábado, das 18h às 00h"
   },
-  reviews: [
+  reviewsList: [
     { id: 1, user: "Cliente123", rating: 5, comment: "Excelente companhia, muito atenciosa e carinhosa." },
     { id: 2, user: "Usuario987", rating: 5, comment: "Simplesmente incrível, superou todas as expectativas!" },
     { id: 3, user: "Apreciador22", rating: 4, comment: "Ótima conversa e presença, recomendo fortemente." }
@@ -245,7 +246,7 @@ const Profile = () => {
             <Card className="bg-secondary border-gray-800">
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  {profile.reviews.map((review) => (
+                  {profile.reviewsList.map((review) => (
                     <div key={review.id} className="pb-4 border-b border-gray-800">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
