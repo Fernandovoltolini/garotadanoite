@@ -11,6 +11,10 @@ import Advertise from "./pages/Advertise";
 import Blog from "./pages/Blog";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+import AdminAdvertOptions from "./pages/admin/AdminAdvertOptions";
+import AdminBlogPosts from "./pages/admin/AdminBlogPosts";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +31,10 @@ const App = () => (
           <Route path="/anunciar" element={<Advertise />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/suporte" element={<Support />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/anuncios" element={<AdminAdvertOptions />} />
+          <Route path="/admin/blog" element={<AdminBlogPosts />} />
+          <Route path="/admin/usuarios" element={<AdminUsers />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
