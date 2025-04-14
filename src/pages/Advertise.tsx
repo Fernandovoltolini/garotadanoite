@@ -13,11 +13,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Camera, Upload, Star, MessageSquare, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 
 interface ImageUpload {
   id: number;
   file?: File;
   preview: string;
+}
+
+interface PlanOption {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  duration: string;
+  price: number;
+  features: string[];
+  boosts: number;
 }
 
 const Advertise = () => {
@@ -27,7 +40,8 @@ const Advertise = () => {
     { id: 3, preview: "/placeholder.svg" },
     { id: 4, preview: "/placeholder.svg" }
   ]);
-  const [selectedPlan, setSelectedPlan] = useState<string>("basic");
+  const [selectedPlan, setSelectedPlan] = useState<string>("opal");
+  const [selectedDuration, setSelectedDuration] = useState<string>("3dias");
   const { toast } = useToast();
   const [form, setForm] = useState({
     name: "",
@@ -44,6 +58,82 @@ const Advertise = () => {
     password: "",
     agreeTerms: false
   });
+
+  const planOptions: Record<string, PlanOption> = {
+    free: {
+      id: "free",
+      name: "Grátis",
+      icon: "✦",
+      color: "gray",
+      duration: "1 dia",
+      price: 0,
+      features: [
+        "1 foto no perfil",
+        "Visibilidade limitada",
+        "Sem destaque",
+        "Apenas renovação paga"
+      ],
+      boosts: 0
+    },
+    opal: {
+      id: "opal",
+      name: "Opala",
+      icon: "✧",
+      color: "blue",
+      duration: "Variável",
+      price: 20,
+      features: [
+        "4 fotos no perfil",
+        "Visibilidade normal",
+        "Destaque básico",
+        "Boosts limitados"
+      ],
+      boosts: 1
+    },
+    ruby: {
+      id: "ruby",
+      name: "Rubi",
+      icon: "★",
+      color: "red",
+      duration: "Variável",
+      price: 40,
+      features: [
+        "8 fotos no perfil",
+        "Visibilidade alta",
+        "Destaque médio",
+        "Mais boosts inclusos"
+      ],
+      boosts: 3
+    },
+    diamond: {
+      id: "diamond",
+      name: "Diamante",
+      icon: "💎",
+      color: "purple",
+      duration: "Variável",
+      price: 80,
+      features: [
+        "16 fotos no perfil",
+        "Visibilidade máxima",
+        "Destaque premium",
+        "Boosts diários"
+      ],
+      boosts: 7
+    }
+  };
+
+  const durationOptions = {
+    "1dia": { label: "1 dia", multiplier: 0.5 },
+    "3dias": { label: "3 dias", multiplier: 1.0 },
+    "15dias": { label: "15 dias", multiplier: 2.5 },
+    "1mes": { label: "1 mês", multiplier: 3.5 },
+    "3meses": { label: "3 meses", multiplier: 8.0 }
+  };
+
+  const calculatePrice = (basePrice: number, durationMultiplier: number) => {
+    if (basePrice === 0) return 0;
+    return Math.round(basePrice * durationMultiplier);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -120,6 +210,16 @@ const Advertise = () => {
         description: "Por favor, preencha todos os campos obrigatórios.",
         variant: "destructive"
       });
+    }
+  };
+
+  const getMaxPhotos = (planId: string) => {
+    switch (planId) {
+      case "free": return 1;
+      case "opal": return 4;
+      case "ruby": return 8;
+      case "diamond": return 16;
+      default: return 4;
     }
   };
 
@@ -274,9 +374,9 @@ const Advertise = () => {
                   </div>
                   
                   <div>
-                    <Label className="text-white mb-3 block">Fotos do Perfil (máximo 10)</Label>
+                    <Label className="text-white mb-3 block">Fotos do Perfil (máximo {getMaxPhotos(selectedPlan)})</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {images.map(image => (
+                      {images.slice(0, getMaxPhotos(selectedPlan)).map(image => (
                         <div 
                           key={image.id} 
                           className="aspect-square relative rounded-md overflow-hidden border border-gray-700 bg-gray-900 flex items-center justify-center"
@@ -406,109 +506,159 @@ const Advertise = () => {
               <CardHeader>
                 <CardTitle className="text-white">Escolha seu Plano</CardTitle>
                 <CardDescription className="text-gray-400">
-                  Aumente sua visibilidade com planos premium
+                  Escolha um plano que atenda às suas necessidades
                 </CardDescription>
               </CardHeader>
               
               <CardContent className="space-y-6">
-                <Tabs defaultValue="basic" onValueChange={setSelectedPlan} className="w-full">
-                  <TabsList className="w-full">
-                    <TabsTrigger value="basic" className="flex-1">Básico</TabsTrigger>
-                    <TabsTrigger value="premium" className="flex-1">Premium</TabsTrigger>
-                    <TabsTrigger value="vip" className="flex-1">VIP</TabsTrigger>
-                  </TabsList>
+                <div>
+                  <Label className="text-white mb-2 block">Selecione seu plano</Label>
+                  <RadioGroup 
+                    defaultValue="opal" 
+                    className="grid grid-cols-2 gap-2"
+                    value={selectedPlan}
+                    onValueChange={setSelectedPlan}
+                  >
+                    {Object.entries(planOptions).map(([id, plan]) => (
+                      <div key={id} className="relative">
+                        <RadioGroupItem value={id} id={`plan-${id}`} className="peer sr-only" />
+                        <Label
+                          htmlFor={`plan-${id}`}
+                          className={`flex flex-col items-center justify-center p-4 rounded-md border ${
+                            selectedPlan === id 
+                              ? "border-brand-red bg-gray-900" 
+                              : "border-gray-700 bg-gray-900/50"
+                          } hover:bg-gray-900 cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-brand-red`}
+                        >
+                          <span className="text-2xl mb-2">{plan.icon}</span>
+                          <span className="font-medium text-white">{plan.name}</span>
+                          <span className="text-sm text-gray-400">
+                            {plan.id === 'free' ? 'Grátis' : `A partir de R$${plan.price}`}
+                          </span>
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                {selectedPlan !== 'free' && (
+                  <div>
+                    <Label className="text-white mb-2 block">Duração do anúncio</Label>
+                    <RadioGroup 
+                      defaultValue="3dias" 
+                      className="grid grid-cols-2 md:grid-cols-3 gap-2"
+                      value={selectedDuration}
+                      onValueChange={setSelectedDuration}
+                    >
+                      {Object.entries(durationOptions).map(([id, duration]) => (
+                        <div key={id} className="relative">
+                          <RadioGroupItem value={id} id={`duration-${id}`} className="peer sr-only" />
+                          <Label
+                            htmlFor={`duration-${id}`}
+                            className={`flex items-center justify-center p-2 rounded-md border text-center ${
+                              selectedDuration === id 
+                                ? "border-brand-red bg-gray-900" 
+                                : "border-gray-700 bg-gray-900/50"
+                            } hover:bg-gray-900 cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-brand-red`}
+                          >
+                            <span className="text-white text-sm">{duration.label}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+
+                <div className="space-y-3 bg-gray-900/70 p-4 rounded-md border border-gray-800">
+                  <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                    {selectedPlan !== 'free' && planOptions[selectedPlan].icon} 
+                    Plano {planOptions[selectedPlan].name}
+                  </h3>
                   
-                  <TabsContent value="basic" className="mt-4 space-y-4">
-                    <div className="text-center p-4">
-                      <div className="text-2xl font-bold text-white mb-2">Grátis</div>
-                      <p className="text-sm text-gray-400">Anúncio básico por 30 dias</p>
+                  {selectedPlan !== 'free' && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Duração:</span>
+                      <span className="text-white">{durationOptions[selectedDuration].label}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center text-xl font-bold">
+                    <span className="text-gray-400">Valor:</span>
+                    <span className="text-brand-red">
+                      {selectedPlan === 'free' 
+                        ? 'Grátis' 
+                        : `R$ ${calculatePrice(planOptions[selectedPlan].price, durationOptions[selectedDuration].multiplier)}`
+                      }
+                    </span>
+                  </div>
+                  
+                  <Separator className="bg-gray-800" />
+                  
+                  <ul className="space-y-2">
+                    {planOptions[selectedPlan].features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-brand-red mr-2">✓</span>
+                        <span className="text-gray-300 text-sm">{feature}</span>
+                      </li>
+                    ))}
+                    
+                    {planOptions[selectedPlan].boosts > 0 && (
+                      <li className="flex items-start">
+                        <span className="text-brand-red mr-2">✓</span>
+                        <span className="text-gray-300 text-sm">
+                          <span className="font-medium">{planOptions[selectedPlan].boosts}</span> impulso{planOptions[selectedPlan].boosts > 1 ? 's' : ''} grátis
+                        </span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                {selectedPlan !== 'free' && (
+                  <div className="bg-gray-900/70 p-4 rounded-md border border-gray-800">
+                    <h4 className="text-white font-medium mb-2">Impulsos</h4>
+                    <p className="text-sm text-gray-300 mb-3">
+                      Impulsos colocam seu anúncio no topo da página por 24 horas
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Impulsos no plano:</span>
+                        <span className="text-white">{planOptions[selectedPlan].boosts}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 italic">
+                        Use os impulsos pelo painel de controle após a aprovação do anúncio.
+                      </p>
                     </div>
                     
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">4 fotos no perfil</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Aparece nas buscas normais</span>
-                      </li>
-                      <li className="flex items-start opacity-50">
-                        <span className="text-gray-500 mr-2">✗</span>
-                        <span className="text-gray-500 text-sm">Sem destaque nas pesquisas</span>
-                      </li>
-                      <li className="flex items-start opacity-50">
-                        <span className="text-gray-500 mr-2">✗</span>
-                        <span className="text-gray-500 text-sm">Sem estatísticas de visitas</span>
-                      </li>
-                    </ul>
-                  </TabsContent>
-                  
-                  <TabsContent value="premium" className="mt-4 space-y-4">
-                    <div className="text-center p-4">
-                      <div className="text-2xl font-bold text-white mb-2">R$ 50<span className="text-sm font-normal">/mês</span></div>
-                      <p className="text-sm text-gray-400">Maior visibilidade</p>
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-300 mb-1">Compre impulsos adicionais:</p>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <Button variant="outline" size="sm" className="text-xs">1 por R$10</Button>
+                        <Button variant="outline" size="sm" className="text-xs">5 por R$40</Button>
+                        <Button variant="outline" size="sm" className="text-xs">10 por R$70</Button>
+                      </div>
                     </div>
-                    
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">10 fotos no perfil</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Destaque em pesquisas</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Estatísticas de visitas</span>
-                      </li>
-                      <li className="flex items-start opacity-50">
-                        <span className="text-gray-500 mr-2">✗</span>
-                        <span className="text-gray-500 text-sm">Sem selo VIP</span>
-                      </li>
-                    </ul>
-                  </TabsContent>
-                  
-                  <TabsContent value="vip" className="mt-4 space-y-4">
-                    <div className="text-center p-4">
-                      <div className="text-2xl font-bold text-white mb-2">R$ 100<span className="text-sm font-normal">/mês</span></div>
-                      <p className="text-sm text-gray-400">Visibilidade máxima</p>
-                    </div>
-                    
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Até 20 fotos no perfil</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Selo VIP especial</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Topo nos resultados de busca</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">Estatísticas avançadas e suporte VIP</span>
-                      </li>
-                    </ul>
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                )}
                 
                 <Button 
-                  className="w-full"
-                  variant={selectedPlan === "basic" ? "outline" : "default"}
-                  disabled={selectedPlan === "basic"}
+                  className="w-full bg-brand-red hover:bg-red-900"
+                  disabled={selectedPlan === "free" && true}
+                  onClick={() => {
+                    toast({
+                      title: "Plano selecionado",
+                      description: `Plano ${planOptions[selectedPlan].name} por ${selectedPlan !== 'free' ? durationOptions[selectedDuration].label : '1 dia'}`,
+                      variant: "default"
+                    });
+                  }}
                 >
-                  {selectedPlan === "basic" 
-                    ? "Plano Selecionado" 
-                    : `Selecionar Plano ${selectedPlan === "premium" ? "Premium" : "VIP"}`}
+                  {selectedPlan === "free" 
+                    ? "Plano Gratuito Selecionado" 
+                    : `Selecionar Plano ${planOptions[selectedPlan].name}`}
                 </Button>
                 
                 <div className="text-center text-xs text-gray-400 mt-4">
-                  Renovação automática mensal. Cancele a qualquer momento.
+                  Você poderá renovar ou alterar seu plano a qualquer momento.
                 </div>
               </CardContent>
             </Card>
