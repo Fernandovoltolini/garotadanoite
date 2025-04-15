@@ -30,8 +30,26 @@ import {
 } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Define interfaces for our data types
+interface Plan {
+  id: number; 
+  name: string; 
+  duration: number; 
+  durationUnit: string; 
+  price: number; 
+  boosts: number; 
+  featured: boolean;
+  description: string;
+}
+
+interface Service {
+  id: number;
+  name: string;
+  active: boolean;
+}
+
 // Sample data for advertising plans
-const initialPlans = [
+const initialPlans: Plan[] = [
   { 
     id: 1, 
     name: "Safira", 
@@ -75,7 +93,7 @@ const initialPlans = [
 ];
 
 // Sample data for service categories
-const initialServices = [
+const initialServices: Service[] = [
   { id: 1, name: "Massagem", active: true },
   { id: 2, name: "Acompanhante", active: true },
   { id: 3, name: "Festas", active: false }
@@ -98,14 +116,18 @@ const serviceFormSchema = z.object({
   active: z.boolean().default(true)
 });
 
+// Define types based on zod schemas
+type PlanFormValues = z.infer<typeof planFormSchema>;
+type ServiceFormValues = z.infer<typeof serviceFormSchema>;
+
 const AdminAdvertOptions = () => {
-  const [plans, setPlans] = useState(initialPlans);
-  const [services, setServices] = useState(initialServices);
+  const [plans, setPlans] = useState<Plan[]>(initialPlans);
+  const [services, setServices] = useState<Service[]>(initialServices);
   const [editingPlan, setEditingPlan] = useState<number | null>(null);
   const [editingService, setEditingService] = useState<number | null>(null);
 
   // Form for plans
-  const planForm = useForm<z.infer<typeof planFormSchema>>({
+  const planForm = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema),
     defaultValues: {
       name: "",
@@ -119,7 +141,7 @@ const AdminAdvertOptions = () => {
   });
 
   // Form for services
-  const serviceForm = useForm<z.infer<typeof serviceFormSchema>>({
+  const serviceForm = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
     defaultValues: {
       name: "",
@@ -127,26 +149,36 @@ const AdminAdvertOptions = () => {
     }
   });
 
-  const handleAddPlan = (data: z.infer<typeof planFormSchema>) => {
+  const handleAddPlan = (data: PlanFormValues) => {
     if (editingPlan) {
       setPlans(plans.map(plan => 
-        plan.id === editingPlan ? { ...data, id: plan.id } : plan
+        plan.id === editingPlan ? { ...plan, ...data } : plan
       ));
       setEditingPlan(null);
     } else {
-      setPlans([...plans, { ...data, id: Date.now() }]);
+      // Ensure all required fields are present in new plan
+      const newPlan: Plan = {
+        id: Date.now(),
+        ...data
+      };
+      setPlans([...plans, newPlan]);
     }
     planForm.reset();
   };
 
-  const handleAddService = (data: z.infer<typeof serviceFormSchema>) => {
+  const handleAddService = (data: ServiceFormValues) => {
     if (editingService) {
       setServices(services.map(service => 
-        service.id === editingService ? { ...data, id: service.id } : service
+        service.id === editingService ? { ...service, ...data } : service
       ));
       setEditingService(null);
     } else {
-      setServices([...services, { ...data, id: Date.now() }]);
+      // Ensure all required fields are present in new service
+      const newService: Service = {
+        id: Date.now(),
+        ...data
+      };
+      setServices([...services, newService]);
     }
     serviceForm.reset();
   };

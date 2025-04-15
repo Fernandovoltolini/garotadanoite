@@ -23,8 +23,21 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Define interface for blog post
+interface BlogPost {
+  id: number;
+  title: string;
+  category: string;
+  author: string;
+  date: string;
+  slug: string;
+  published: boolean;
+  excerpt: string;
+  content: string;
+}
+
 // Sample data for blog posts
-const initialBlogPosts = [
+const initialBlogPosts: BlogPost[] = [
   { 
     id: 1, 
     title: "Como escolher o melhor plano de anúncio", 
@@ -72,12 +85,14 @@ const blogPostFormSchema = z.object({
   content: z.string().min(50, "Conteúdo deve ter pelo menos 50 caracteres"),
 });
 
+type BlogPostFormValues = z.infer<typeof blogPostFormSchema>;
+
 const AdminBlogPosts = () => {
-  const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(initialBlogPosts);
   const [editingPost, setEditingPost] = useState<number | null>(null);
 
   // Form for blog posts
-  const blogPostForm = useForm<z.infer<typeof blogPostFormSchema>>({
+  const blogPostForm = useForm<BlogPostFormValues>({
     resolver: zodResolver(blogPostFormSchema),
     defaultValues: {
       title: "",
@@ -91,14 +106,19 @@ const AdminBlogPosts = () => {
     }
   });
 
-  const handleAddPost = (data: z.infer<typeof blogPostFormSchema>) => {
+  const handleAddPost = (data: BlogPostFormValues) => {
     if (editingPost) {
       setBlogPosts(blogPosts.map(post => 
-        post.id === editingPost ? { ...data, id: post.id } : post
+        post.id === editingPost ? { ...post, ...data } : post
       ));
       setEditingPost(null);
     } else {
-      setBlogPosts([...blogPosts, { ...data, id: Date.now() }]);
+      // Ensure all required fields are present in new post
+      const newPost: BlogPost = {
+        id: Date.now(),
+        ...data
+      };
+      setBlogPosts([...blogPosts, newPost]);
     }
     blogPostForm.reset();
   };
