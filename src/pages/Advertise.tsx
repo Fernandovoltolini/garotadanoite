@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -56,7 +55,13 @@ const Advertise = () => {
     whatsapp: false,
     email: "",
     password: "",
-    agreeTerms: false
+    agreeTerms: false,
+    prices: {
+      fifteenMin: "",
+      halfHour: "",
+      hour: "",
+      overnight: ""
+    }
   });
 
   const planOptions: Record<string, PlanOption> = {
@@ -221,6 +226,17 @@ const Advertise = () => {
       case "diamond": return 16;
       default: return 4;
     }
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      prices: {
+        ...prev.prices,
+        [name]: value
+      }
+    }));
   };
 
   return (
@@ -406,67 +422,140 @@ const Advertise = () => {
                     </p>
                   </div>
                   
-                  <div>
-                    <h3 className="text-white mb-3 text-lg font-medium">Informações de Contato</h3>
+                  <h3 className="text-white mb-3 text-lg font-medium">Informações de Contato</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-white">Telefone / WhatsApp</Label>
+                      <Input 
+                        id="phone"
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleInputChange}
+                        placeholder="Seu número de telefone"
+                        className="bg-gray-900 border-gray-700"
+                      />
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="whatsapp"
+                          checked={form.whatsapp}
+                          onCheckedChange={(checked) => 
+                            handleCheckboxChange("whatsapp", checked === true)
+                          }
+                          className="data-[state=checked]:bg-brand-red"
+                        />
+                        <label
+                          htmlFor="whatsapp"
+                          className="text-sm text-gray-300"
+                        >
+                          Este número possui WhatsApp
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-white">Email *</Label>
+                      <Input 
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={form.email}
+                        onChange={handleInputChange}
+                        placeholder="Seu endereço de email"
+                        className="bg-gray-900 border-gray-700"
+                        required
+                      />
+                      <p className="text-xs text-gray-400">
+                        Este email será usado para acessar sua conta.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-white">Senha *</Label>
+                      <Input 
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={form.password}
+                        onChange={handleInputChange}
+                        placeholder="Escolha uma senha segura"
+                        className="bg-gray-900 border-gray-700"
+                        required
+                      />
+                    </div>
+                  </div>
+                
+                  <div className="space-y-4 mt-6">
+                    <h3 className="text-white text-lg font-medium">Valores dos Serviços</h3>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-white">Telefone / WhatsApp</Label>
-                        <Input 
-                          id="phone"
-                          name="phone"
-                          value={form.phone}
-                          onChange={handleInputChange}
-                          placeholder="Seu número de telefone"
-                          className="bg-gray-900 border-gray-700"
-                        />
-                        
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="whatsapp"
-                            checked={form.whatsapp}
-                            onCheckedChange={(checked) => 
-                              handleCheckboxChange("whatsapp", checked === true)
-                            }
-                            className="data-[state=checked]:bg-brand-red"
+                        <Label htmlFor="hour" className="text-white">Valor por Hora *</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                          <Input
+                            id="hour"
+                            name="hour"
+                            type="number"
+                            min="0"
+                            value={form.prices.hour}
+                            onChange={handlePriceChange}
+                            placeholder="0"
+                            className="bg-gray-900 border-gray-700 pl-10"
+                            required
                           />
-                          <label
-                            htmlFor="whatsapp"
-                            className="text-sm text-gray-300"
-                          >
-                            Este número possui WhatsApp
-                          </label>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-white">Email *</Label>
-                        <Input 
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={form.email}
-                          onChange={handleInputChange}
-                          placeholder="Seu endereço de email"
-                          className="bg-gray-900 border-gray-700"
-                          required
-                        />
-                        <p className="text-xs text-gray-400">
-                          Este email será usado para acessar sua conta.
-                        </p>
+                        <Label htmlFor="fifteenMin" className="text-white">Valor 15 minutos (opcional)</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                          <Input
+                            id="fifteenMin"
+                            name="fifteenMin"
+                            type="number"
+                            min="0"
+                            value={form.prices.fifteenMin}
+                            onChange={handlePriceChange}
+                            placeholder="0"
+                            className="bg-gray-900 border-gray-700 pl-10"
+                          />
+                        </div>
                       </div>
-                      
+
                       <div className="space-y-2">
-                        <Label htmlFor="password" className="text-white">Senha *</Label>
-                        <Input 
-                          id="password"
-                          name="password"
-                          type="password"
-                          value={form.password}
-                          onChange={handleInputChange}
-                          placeholder="Escolha uma senha segura"
-                          className="bg-gray-900 border-gray-700"
-                          required
-                        />
+                        <Label htmlFor="halfHour" className="text-white">Valor 30 minutos (opcional)</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                          <Input
+                            id="halfHour"
+                            name="halfHour"
+                            type="number"
+                            min="0"
+                            value={form.prices.halfHour}
+                            onChange={handlePriceChange}
+                            placeholder="0"
+                            className="bg-gray-900 border-gray-700 pl-10"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="overnight" className="text-white">Valor Pernoite (opcional)</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                          <Input
+                            id="overnight"
+                            name="overnight"
+                            type="number"
+                            min="0"
+                            value={form.prices.overnight}
+                            onChange={handlePriceChange}
+                            placeholder="0"
+                            className="bg-gray-900 border-gray-700 pl-10"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

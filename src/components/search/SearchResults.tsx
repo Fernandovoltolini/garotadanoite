@@ -1,4 +1,3 @@
-
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,11 @@ const mockResults = [
     rating: 4.8,
     verified: true,
     services: ["Eventos", "Jantares"],
-    available: true
+    available: true,
+    planType: "diamond",
+    prices: {
+      hour: 300
+    }
   },
   {
     id: 2,
@@ -38,11 +41,41 @@ const mockResults = [
     rating: 4.9,
     verified: true,
     services: ["Viagens", "Eventos"],
-    available: true
+    available: true,
+    planType: "ruby",
+    prices: {
+      hour: 250
+    }
   }
 ];
 
 const SearchResults = ({ filters }: SearchResultsProps) => {
+  const getPlanBadgeColor = (plan: string) => {
+    switch (plan) {
+      case 'diamond':
+        return 'bg-purple-500';
+      case 'ruby':
+        return 'bg-red-500';
+      case 'opal':
+        return 'bg-blue-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getPlanLabel = (plan: string) => {
+    switch (plan) {
+      case 'diamond':
+        return 'Plano Diamante';
+      case 'ruby':
+        return 'Plano Rubi';
+      case 'opal':
+        return 'Plano Opala';
+      default:
+        return 'Plano Básico';
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {mockResults.map((profile) => (
@@ -53,11 +86,21 @@ const SearchResults = ({ filters }: SearchResultsProps) => {
               alt={profile.name} 
               className="w-full h-64 object-cover object-center"
             />
+            <div className="absolute top-3 left-3">
+              <Badge className={`${getPlanBadgeColor(profile.planType)} text-white`}>
+                {getPlanLabel(profile.planType)}
+              </Badge>
+            </div>
             {profile.verified && (
               <Badge className="absolute top-3 right-3 bg-brand-red text-white">
                 Verificado
               </Badge>
             )}
+            <div className="absolute bottom-3 right-3">
+              <Badge className="bg-black/80 text-white text-lg font-semibold">
+                R$ {profile.prices.hour}/h
+              </Badge>
+            </div>
           </div>
           
           <div className="p-4">
