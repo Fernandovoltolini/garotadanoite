@@ -1,117 +1,100 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
-export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+const Navbar = () => {
+  const [isMobile, setIsMobile] = useState(false);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
+    // Set initial value
+    handleResize();
+
+    // Listen for window resize events
+    window.addEventListener("resize", handleResize);
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  
   return (
-    <nav className="bg-black border-b border-brand-red/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+    <header className="sticky top-0 z-50 w-full bg-gray-950 border-b border-gray-800">
+      <div className="container flex h-16 items-center px-4">
+        <Link to="/" className="mr-6">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-montserrat font-bold text-brand-red">
-                Garota<span className="text-brand-white">da</span>Noite
-              </span>
-            </Link>
+            <span className="hidden md:inline-block text-xl font-bold text-brand-red">Garota da Noite</span>
+            <span className="md:hidden text-xl font-bold text-brand-red">GDN</span>
           </div>
-          
-          {/* Desktop Menu */}
-          <div className="hidden md:block">
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="text-brand-white hover:text-brand-red px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Início
-              </Link>
-              <Link to="/busca" className="text-brand-white hover:text-brand-red px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Busca
-              </Link>
-              <Link to="/anunciar" className="text-brand-white hover:text-brand-red px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Anunciar
-              </Link>
-              <Link to="/blog" className="text-brand-white hover:text-brand-red px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Blog
-              </Link>
-              <Link to="/suporte" className="text-brand-white hover:text-brand-red px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Suporte
-              </Link>
-              <Button variant="outline" className="border-brand-red text-brand-red hover:bg-brand-red hover:text-brand-white">
-                Entrar
-              </Button>
-              <Button className="bg-brand-red text-brand-white hover:bg-red-900">
-                Cadastrar
-              </Button>
-            </div>
-          </div>
-          
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-brand-white hover:text-brand-red focus:outline-none"
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+        </Link>
+        <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 mx-6">
+          <Link to="/" className="text-sm font-medium text-gray-200 transition-colors hover:text-white">
+            <span>Início</span>
+          </Link>
+          <Link to="/busca" className="text-sm font-medium text-gray-200 transition-colors hover:text-white">
+            <span>Buscar</span>
+          </Link>
+          <Link to="/blog" className="text-sm font-medium text-gray-200 transition-colors hover:text-white">
+            <span>Blog</span>
+          </Link>
+          <Link to="/suporte" className="text-sm font-medium text-gray-200 transition-colors hover:text-white">
+            <span>Suporte</span>
+          </Link>
+        </nav>
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <Link to="/planos" className="hidden md:inline-flex bg-brand-red hover:bg-red-900 text-white px-4 py-2 rounded-md text-sm font-medium">
+            Anunciar
+          </Link>
+          {isMobile ? (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="border-gray-800 bg-transparent text-gray-300">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="border-gray-800 bg-gray-950 text-white">
+                <SheetHeader>
+                  <SheetTitle className="text-white">Garota da Noite</SheetTitle>
+                </SheetHeader>
+                <div className="py-4">
+                  <nav className="flex flex-col space-y-4">
+                    <Link to="/" className="text-gray-200 hover:text-white">
+                      Início
+                    </Link>
+                    <Link to="/busca" className="text-gray-200 hover:text-white">
+                      Buscar
+                    </Link>
+                    <Link to="/blog" className="text-gray-200 hover:text-white">
+                      Blog
+                    </Link>
+                    <Link to="/suporte" className="text-gray-200 hover:text-white">
+                      Suporte
+                    </Link>
+                  </nav>
+                  <div className="mt-6 pt-6 border-t border-gray-800">
+                    <Link to="/planos" className="w-full bg-brand-red hover:bg-red-900 text-white px-4 py-2 rounded-md text-center block">
+                      Anunciar
+                    </Link>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          ) : null}
         </div>
       </div>
-      
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-black border-t border-brand-red/20">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link 
-              to="/" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-brand-white hover:text-brand-red hover:bg-black/30"
-              onClick={() => setIsOpen(false)}
-            >
-              Início
-            </Link>
-            <Link 
-              to="/busca" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-brand-white hover:text-brand-red hover:bg-black/30"
-              onClick={() => setIsOpen(false)}
-            >
-              Busca
-            </Link>
-            <Link 
-              to="/anunciar" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-brand-white hover:text-brand-red hover:bg-black/30"
-              onClick={() => setIsOpen(false)}
-            >
-              Anunciar
-            </Link>
-            <Link 
-              to="/blog" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-brand-white hover:text-brand-red hover:bg-black/30"
-              onClick={() => setIsOpen(false)}
-            >
-              Blog
-            </Link>
-            <Link 
-              to="/suporte" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-brand-white hover:text-brand-red hover:bg-black/30"
-              onClick={() => setIsOpen(false)}
-            >
-              Suporte
-            </Link>
-            <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="outline" className="border-brand-red text-brand-red hover:bg-brand-red hover:text-brand-white w-full">
-                Entrar
-              </Button>
-              <Button className="bg-brand-red text-brand-white hover:bg-red-900 w-full">
-                Cadastrar
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </nav>
+    </header>
   );
-}
+};
+
+export default Navbar;

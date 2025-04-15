@@ -1,3 +1,4 @@
+
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,10 @@ const mockResults = [
     available: true,
     planType: "diamond",
     prices: {
-      hour: 300
+      fifteenMin: 100,
+      halfHour: 180,
+      hour: 300,
+      overnight: 2000
     }
   },
   {
@@ -44,7 +48,8 @@ const mockResults = [
     available: true,
     planType: "ruby",
     prices: {
-      hour: 250
+      hour: 250,
+      overnight: 1800
     }
   }
 ];

@@ -1,11 +1,14 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
+import PlanSelection from "./pages/PlanSelection";
+import DocumentVerification from "./pages/DocumentVerification";
 import Advertise from "./pages/Advertise";
 import Blog from "./pages/Blog";
 import Support from "./pages/Support";
@@ -28,6 +31,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/busca" element={<Search />} />
           <Route path="/perfil/:id" element={<Profile />} />
+          <Route path="/planos" element={<PlanSelection />} />
+          <Route path="/verificacao" element={<DocumentVerification />} />
           <Route path="/anunciar" element={<Advertise />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/suporte" element={<Support />} />

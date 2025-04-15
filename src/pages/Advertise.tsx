@@ -1,4 +1,6 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -7,12 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Camera, Upload, Star, MessageSquare, Calendar } from "lucide-react";
+import { Camera, Upload, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 
 interface ImageUpload {
@@ -21,27 +21,29 @@ interface ImageUpload {
   preview: string;
 }
 
-interface PlanOption {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  duration: string;
-  price: number;
-  features: string[];
-  boosts: number;
-}
-
 const Advertise = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [selectedPlan, setSelectedPlan] = useState<string>("opal");
+  const [selectedDuration, setSelectedDuration] = useState<string>("3dias");
   const [images, setImages] = useState<ImageUpload[]>([
     { id: 1, preview: "/placeholder.svg" },
     { id: 2, preview: "/placeholder.svg" },
     { id: 3, preview: "/placeholder.svg" },
-    { id: 4, preview: "/placeholder.svg" }
+    { id: 4, preview: "/placeholder.svg" },
+    { id: 5, preview: "/placeholder.svg" },
+    { id: 6, preview: "/placeholder.svg" },
+    { id: 7, preview: "/placeholder.svg" },
+    { id: 8, preview: "/placeholder.svg" },
+    { id: 9, preview: "/placeholder.svg" },
+    { id: 10, preview: "/placeholder.svg" },
+    { id: 11, preview: "/placeholder.svg" },
+    { id: 12, preview: "/placeholder.svg" },
+    { id: 13, preview: "/placeholder.svg" },
+    { id: 14, preview: "/placeholder.svg" },
+    { id: 15, preview: "/placeholder.svg" },
+    { id: 16, preview: "/placeholder.svg" }
   ]);
-  const [selectedPlan, setSelectedPlan] = useState<string>("opal");
-  const [selectedDuration, setSelectedDuration] = useState<string>("3dias");
-  const { toast } = useToast();
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -64,81 +66,19 @@ const Advertise = () => {
     }
   });
 
-  const planOptions: Record<string, PlanOption> = {
-    free: {
-      id: "free",
-      name: "Grátis",
-      icon: "✦",
-      color: "gray",
-      duration: "1 dia",
-      price: 0,
-      features: [
-        "1 foto no perfil",
-        "Visibilidade limitada",
-        "Sem destaque",
-        "Apenas renovação paga"
-      ],
-      boosts: 0
-    },
-    opal: {
-      id: "opal",
-      name: "Opala",
-      icon: "✧",
-      color: "blue",
-      duration: "Variável",
-      price: 20,
-      features: [
-        "4 fotos no perfil",
-        "Visibilidade normal",
-        "Destaque básico",
-        "Boosts limitados"
-      ],
-      boosts: 1
-    },
-    ruby: {
-      id: "ruby",
-      name: "Rubi",
-      icon: "★",
-      color: "red",
-      duration: "Variável",
-      price: 40,
-      features: [
-        "8 fotos no perfil",
-        "Visibilidade alta",
-        "Destaque médio",
-        "Mais boosts inclusos"
-      ],
-      boosts: 3
-    },
-    diamond: {
-      id: "diamond",
-      name: "Diamante",
-      icon: "💎",
-      color: "purple",
-      duration: "Variável",
-      price: 80,
-      features: [
-        "16 fotos no perfil",
-        "Visibilidade máxima",
-        "Destaque premium",
-        "Boosts diários"
-      ],
-      boosts: 7
+  // Load plan selection from localStorage
+  useEffect(() => {
+    const planFromStorage = localStorage.getItem("selectedPlan");
+    const durationFromStorage = localStorage.getItem("selectedDuration");
+    
+    if (planFromStorage) {
+      setSelectedPlan(planFromStorage);
     }
-  };
-
-  const durationOptions = {
-    "1dia": { label: "1 dia", multiplier: 0.5 },
-    "3dias": { label: "3 dias", multiplier: 1.0 },
-    "15dias": { label: "15 dias", multiplier: 2.5 },
-    "1mes": { label: "1 mês", multiplier: 3.5 },
-    "3meses": { label: "3 meses", multiplier: 8.0 }
-  };
-
-  const calculatePrice = (basePrice: number, durationMultiplier: number) => {
-    if (basePrice === 0) return 0;
-    return Math.round(basePrice * durationMultiplier);
-  };
+    
+    if (durationFromStorage) {
+      setSelectedDuration(durationFromStorage);
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -192,30 +132,15 @@ const Advertise = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!form.agreeTerms) {
-      toast({
-        title: "Termos não aceitos",
-        description: "Você precisa aceitar os termos e condições para continuar.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (form.name && form.age && form.city && form.description) {
-      toast({
-        title: "Anúncio enviado com sucesso!",
-        description: "Seu perfil está em análise e em breve estará disponível."
-      });
-    } else {
-      toast({
-        title: "Informações incompletas",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-    }
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      prices: {
+        ...prev.prices,
+        [name]: value
+      }
+    }));
   };
 
   const getMaxPhotos = (planId: string) => {
@@ -228,15 +153,81 @@ const Advertise = () => {
     }
   };
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
-      ...prev,
-      prices: {
-        ...prev.prices,
-        [name]: value
-      }
-    }));
+  const planOptions = {
+    free: { name: "Grátis", price: 0 },
+    opal: { name: "Opala", price: 20 },
+    ruby: { name: "Rubi", price: 40 },
+    diamond: { name: "Diamante", price: 80 }
+  };
+
+  const durationOptions = {
+    "1dia": { label: "1 dia", multiplier: 0.5 },
+    "3dias": { label: "3 dias", multiplier: 1.0 },
+    "15dias": { label: "15 dias", multiplier: 2.5 },
+    "1mes": { label: "1 mês", multiplier: 3.5 },
+    "3meses": { label: "3 meses", multiplier: 8.0 }
+  };
+
+  const calculatePrice = (basePrice: number, durationMultiplier: number) => {
+    if (basePrice === 0) return 0;
+    return Math.round(basePrice * durationMultiplier);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!form.agreeTerms) {
+      toast({
+        title: "Termos não aceitos",
+        description: "Você precisa aceitar os termos e condições para continuar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!form.prices.hour) {
+      toast({
+        title: "Preço por hora obrigatório",
+        description: "Por favor, informe o valor cobrado por hora.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (form.name && form.age && form.city && form.description) {
+      toast({
+        title: "Anúncio criado com sucesso!",
+        description: "Prossiga para o pagamento para ativar seu anúncio."
+      });
+      
+      // In a real implementation, this would redirect to a payment page
+      // For now, let's just show a success message
+      setTimeout(() => {
+        toast({
+          title: "Pagamento confirmado",
+          description: "Seu anúncio está em análise e em breve estará disponível."
+        });
+      }, 2000);
+    } else {
+      toast({
+        title: "Informações incompletas",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getPlanBadgeColor = (plan: string) => {
+    switch (plan) {
+      case 'diamond':
+        return 'bg-purple-500';
+      case 'ruby':
+        return 'bg-red-500';
+      case 'opal':
+        return 'bg-blue-500';
+      default:
+        return 'bg-gray-500';
+    }
   };
 
   return (
@@ -246,10 +237,10 @@ const Advertise = () => {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Anuncie no <span className="text-brand-red">Garota da Noite</span>
+            Criar seu <span className="text-brand-red">Anúncio</span>
           </h1>
           <p className="text-gray-300 max-w-2xl mx-auto">
-            Crie seu perfil personalizado e aumente sua visibilidade para potenciais clientes
+            Preencha seus dados para criar seu perfil personalizado
           </p>
         </div>
         
@@ -582,7 +573,7 @@ const Advertise = () => {
                   
                   <div className="pt-4">
                     <Button type="submit" className="w-full bg-brand-red hover:bg-red-900 text-white" size="lg">
-                      Cadastrar Anúncio
+                      Confirmar e Prosseguir para Pagamento
                     </Button>
                   </div>
                 </CardContent>
@@ -593,81 +584,35 @@ const Advertise = () => {
           <div className="col-span-1">
             <Card className="bg-secondary border-gray-800 sticky top-6">
               <CardHeader>
-                <CardTitle className="text-white">Escolha seu Plano</CardTitle>
+                <CardTitle className="text-white">Resumo do Plano</CardTitle>
                 <CardDescription className="text-gray-400">
-                  Escolha um plano que atenda às suas necessidades
+                  Detalhes do plano selecionado
                 </CardDescription>
               </CardHeader>
               
               <CardContent className="space-y-6">
-                <div>
-                  <Label className="text-white mb-2 block">Selecione seu plano</Label>
-                  <RadioGroup 
-                    defaultValue="opal" 
-                    className="grid grid-cols-2 gap-2"
-                    value={selectedPlan}
-                    onValueChange={setSelectedPlan}
-                  >
-                    {Object.entries(planOptions).map(([id, plan]) => (
-                      <div key={id} className="relative">
-                        <RadioGroupItem value={id} id={`plan-${id}`} className="peer sr-only" />
-                        <Label
-                          htmlFor={`plan-${id}`}
-                          className={`flex flex-col items-center justify-center p-4 rounded-md border ${
-                            selectedPlan === id 
-                              ? "border-brand-red bg-gray-900" 
-                              : "border-gray-700 bg-gray-900/50"
-                          } hover:bg-gray-900 cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-brand-red`}
-                        >
-                          <span className="text-2xl mb-2">{plan.icon}</span>
-                          <span className="font-medium text-white">{plan.name}</span>
-                          <span className="text-sm text-gray-400">
-                            {plan.id === 'free' ? 'Grátis' : `A partir de R$${plan.price}`}
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                {selectedPlan !== 'free' && (
-                  <div>
-                    <Label className="text-white mb-2 block">Duração do anúncio</Label>
-                    <RadioGroup 
-                      defaultValue="3dias" 
-                      className="grid grid-cols-2 md:grid-cols-3 gap-2"
-                      value={selectedDuration}
-                      onValueChange={setSelectedDuration}
-                    >
-                      {Object.entries(durationOptions).map(([id, duration]) => (
-                        <div key={id} className="relative">
-                          <RadioGroupItem value={id} id={`duration-${id}`} className="peer sr-only" />
-                          <Label
-                            htmlFor={`duration-${id}`}
-                            className={`flex items-center justify-center p-2 rounded-md border text-center ${
-                              selectedDuration === id 
-                                ? "border-brand-red bg-gray-900" 
-                                : "border-gray-700 bg-gray-900/50"
-                            } hover:bg-gray-900 cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-brand-red`}
-                          >
-                            <span className="text-white text-sm">{duration.label}</span>
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                )}
-
                 <div className="space-y-3 bg-gray-900/70 p-4 rounded-md border border-gray-800">
-                  <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                    {selectedPlan !== 'free' && planOptions[selectedPlan].icon} 
-                    Plano {planOptions[selectedPlan].name}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className={`${getPlanBadgeColor(selectedPlan)} text-white`}>
+                      {planOptions[selectedPlan as keyof typeof planOptions]?.name || "Plano"}
+                    </Badge>
+                    
+                    {selectedPlan !== 'free' && (
+                      <Badge className="bg-gray-800 text-white">
+                        {durationOptions[selectedDuration as keyof typeof durationOptions]?.label || ""}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-400">Plano:</span>
+                    <span className="text-white">{planOptions[selectedPlan as keyof typeof planOptions]?.name || ""}</span>
+                  </div>
                   
                   {selectedPlan !== 'free' && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-400">Duração:</span>
-                      <span className="text-white">{durationOptions[selectedDuration].label}</span>
+                      <span className="text-white">{durationOptions[selectedDuration as keyof typeof durationOptions]?.label || ""}</span>
                     </div>
                   )}
                   
@@ -676,78 +621,50 @@ const Advertise = () => {
                     <span className="text-brand-red">
                       {selectedPlan === 'free' 
                         ? 'Grátis' 
-                        : `R$ ${calculatePrice(planOptions[selectedPlan].price, durationOptions[selectedDuration].multiplier)}`
+                        : `R$ ${calculatePrice(
+                            planOptions[selectedPlan as keyof typeof planOptions]?.price || 0, 
+                            durationOptions[selectedDuration as keyof typeof durationOptions]?.multiplier || 1
+                          )}`
                       }
                     </span>
                   </div>
                   
                   <Separator className="bg-gray-800" />
                   
-                  <ul className="space-y-2">
-                    {planOptions[selectedPlan].features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                    
-                    {planOptions[selectedPlan].boosts > 0 && (
-                      <li className="flex items-start">
-                        <span className="text-brand-red mr-2">✓</span>
-                        <span className="text-gray-300 text-sm">
-                          <span className="font-medium">{planOptions[selectedPlan].boosts}</span> impulso{planOptions[selectedPlan].boosts > 1 ? 's' : ''} grátis
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                {selectedPlan !== 'free' && (
-                  <div className="bg-gray-900/70 p-4 rounded-md border border-gray-800">
-                    <h4 className="text-white font-medium mb-2">Impulsos</h4>
-                    <p className="text-sm text-gray-300 mb-3">
-                      Impulsos colocam seu anúncio no topo da página por 24 horas
-                    </p>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Impulsos no plano:</span>
-                        <span className="text-white">{planOptions[selectedPlan].boosts}</span>
-                      </div>
-                      <p className="text-xs text-gray-400 italic">
-                        Use os impulsos pelo painel de controle após a aprovação do anúncio.
-                      </p>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-300 mb-1">Compre impulsos adicionais:</p>
-                      <div className="grid grid-cols-3 gap-2 mt-2">
-                        <Button variant="outline" size="sm" className="text-xs">1 por R$10</Button>
-                        <Button variant="outline" size="sm" className="text-xs">5 por R$40</Button>
-                        <Button variant="outline" size="sm" className="text-xs">10 por R$70</Button>
-                      </div>
-                    </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Fotos permitidas:</span>
+                    <span className="text-white">{getMaxPhotos(selectedPlan)}</span>
                   </div>
-                )}
+
+                  <Button 
+                    onClick={() => navigate("/planos")} 
+                    variant="outline" 
+                    className="w-full mt-4 border-gray-700"
+                  >
+                    Alterar Plano
+                  </Button>
+                </div>
                 
-                <Button 
-                  className="w-full bg-brand-red hover:bg-red-900"
-                  disabled={selectedPlan === "free" && true}
-                  onClick={() => {
-                    toast({
-                      title: "Plano selecionado",
-                      description: `Plano ${planOptions[selectedPlan].name} por ${selectedPlan !== 'free' ? durationOptions[selectedDuration].label : '1 dia'}`,
-                      variant: "default"
-                    });
-                  }}
-                >
-                  {selectedPlan === "free" 
-                    ? "Plano Gratuito Selecionado" 
-                    : `Selecionar Plano ${planOptions[selectedPlan].name}`}
-                </Button>
+                <div className="bg-gray-900/70 p-4 rounded-md border border-gray-800">
+                  <h3 className="text-white font-medium mb-2">Verificação de Documentos</h3>
+                  
+                  <div className="flex items-center gap-2 text-sm text-gray-300 mb-3">
+                    <AlertCircle className="h-4 w-4 text-yellow-500" />
+                    <span>Status: Em análise</span>
+                  </div>
+                  
+                  <Button 
+                    onClick={() => navigate("/verificacao")} 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-gray-700 text-sm"
+                  >
+                    Revisar documentos
+                  </Button>
+                </div>
                 
-                <div className="text-center text-xs text-gray-400 mt-4">
-                  Você poderá renovar ou alterar seu plano a qualquer momento.
+                <div className="text-center text-xs text-gray-400">
+                  Precisa de ajuda? <a href="#" className="text-brand-red hover:underline">Entre em contato</a> com nossa equipe.
                 </div>
               </CardContent>
             </Card>
