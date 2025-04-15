@@ -113,10 +113,17 @@ const AdminBlogPosts = () => {
       ));
       setEditingPost(null);
     } else {
-      // Ensure all required fields are present in new post
+      // Create a complete BlogPost object with all required properties
       const newPost: BlogPost = {
         id: Date.now(),
-        ...data
+        title: data.title,
+        slug: data.slug,
+        category: data.category,
+        author: data.author,
+        date: data.date,
+        published: data.published,
+        excerpt: data.excerpt,
+        content: data.content
       };
       setBlogPosts([...blogPosts, newPost]);
     }

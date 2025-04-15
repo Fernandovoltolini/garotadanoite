@@ -156,10 +156,16 @@ const AdminAdvertOptions = () => {
       ));
       setEditingPlan(null);
     } else {
-      // Ensure all required fields are present in new plan
+      // Create a complete Plan object with all required properties
       const newPlan: Plan = {
         id: Date.now(),
-        ...data
+        name: data.name,
+        duration: data.duration,
+        durationUnit: data.durationUnit,
+        price: data.price,
+        boosts: data.boosts,
+        featured: data.featured,
+        description: data.description
       };
       setPlans([...plans, newPlan]);
     }
@@ -173,10 +179,11 @@ const AdminAdvertOptions = () => {
       ));
       setEditingService(null);
     } else {
-      // Ensure all required fields are present in new service
+      // Create a complete Service object with all required properties
       const newService: Service = {
         id: Date.now(),
-        ...data
+        name: data.name,
+        active: data.active
       };
       setServices([...services, newService]);
     }
