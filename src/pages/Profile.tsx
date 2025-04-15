@@ -23,10 +23,17 @@ const profileData = {
   reviews: 27,
   description: "Sou carinhosa, adoro conversar e oferecer momentos inesquecíveis. Acompanhante de luxo para eventos sociais e encontros especiais.",
   services: [
-    { name: "Companhia para eventos", price: 300 },
-    { name: "Jantar romântico", price: 250 },
-    { name: "Final de semana completo", price: 2000 }
+    "Massagem relaxante",
+    "Acompanhante para eventos",
+    "Jantar romântico",
+    "Conversação e companhia"
   ],
+  prices: {
+    hour: 300,
+    halfHour: 180,
+    fifteenMin: 100,
+    overnight: 2000
+  },
   images: [
     "/placeholder.svg",
     "/placeholder.svg",
@@ -203,7 +210,7 @@ const Profile = () => {
         <Tabs defaultValue="details" className="mb-8">
           <TabsList className="w-full bg-secondary">
             <TabsTrigger value="details" className="flex-1">Detalhes</TabsTrigger>
-            <TabsTrigger value="services" className="flex-1">Serviços & Tarifas</TabsTrigger>
+            <TabsTrigger value="services" className="flex-1">Serviços & Valores</TabsTrigger>
             <TabsTrigger value="reviews" className="flex-1">Avaliações</TabsTrigger>
           </TabsList>
           
@@ -228,15 +235,57 @@ const Profile = () => {
           <TabsContent value="services" className="text-white mt-4">
             <Card className="bg-secondary border-gray-800">
               <CardContent className="p-6">
-                <div className="divide-y divide-gray-800">
-                  {profile.services.map((service, index) => (
-                    <div key={index} className="flex justify-between items-center py-3">
-                      <span>{service.name}</span>
+                {/* Serviços como lista */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium mb-3">Serviços Oferecidos:</h3>
+                  <ul className="list-disc pl-6 space-y-1">
+                    {profile.services.map((service, index) => (
+                      <li key={index}>{service}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                {/* Preços separados por duração */}
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Valores:</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2" />
+                        15 minutos
+                      </span>
                       <span className="font-semibold text-brand-red">
-                        R$ {service.price}/hora
+                        R$ {profile.prices.fifteenMin}
                       </span>
                     </div>
-                  ))}
+                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2" />
+                        30 minutos
+                      </span>
+                      <span className="font-semibold text-brand-red">
+                        R$ {profile.prices.halfHour}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2" />
+                        1 hora
+                      </span>
+                      <span className="font-semibold text-brand-red">
+                        R$ {profile.prices.hour}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Pernoite
+                      </span>
+                      <span className="font-semibold text-brand-red">
+                        R$ {profile.prices.overnight}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
