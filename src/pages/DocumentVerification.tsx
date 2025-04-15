@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
@@ -78,22 +77,9 @@ const DocumentVerification = () => {
       return;
     }
     
-    // In a real implementation, you would upload these files to the server here
-    // For now, let's just simulate success and move to the next step
-    
     toast({
       title: "Documentos enviados",
       description: "Seus documentos foram enviados com sucesso. Você pode continuar criando seu anúncio.",
-    });
-    
-    navigate("/anunciar");
-  };
-
-  const handleSkipVerification = () => {
-    toast({
-      title: "Verificação pulada",
-      description: "Lembre-se que você terá acesso limitado até verificar sua identidade.",
-      variant: "destructive"
     });
     
     navigate("/anunciar");
@@ -184,18 +170,10 @@ const DocumentVerification = () => {
               <div className="flex flex-col md:flex-row gap-4">
                 <Button 
                   onClick={handleContinue}
-                  className="w-full md:flex-1 bg-brand-red hover:bg-red-900 text-white" 
+                  className="w-full bg-brand-red hover:bg-red-900 text-white" 
                   size="lg"
                 >
                   Enviar Documentos e Continuar
-                </Button>
-                
-                <Button 
-                  onClick={handleSkipVerification}
-                  variant="outline" 
-                  className="w-full md:w-auto border-gray-700 text-gray-400 hover:text-white"
-                >
-                  Pular Verificação (Acesso Limitado)
                 </Button>
               </div>
             </CardContent>

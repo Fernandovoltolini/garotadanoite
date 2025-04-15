@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import AdminAdvertOptions from "./pages/admin/AdminAdvertOptions";
 import AdminBlogPosts from "./pages/admin/AdminBlogPosts";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminNewAds from "./pages/admin/AdminNewAds";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +34,7 @@ const App = () => (
           <Route path="/planos" element={<PlanSelection />} />
           <Route path="/verificacao" element={<DocumentVerification />} />
           <Route path="/anunciar" element={<Advertise />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/suporte" element={<Support />} />
           <Route path="/admin" element={<Admin />} />
@@ -41,7 +42,6 @@ const App = () => (
           <Route path="/admin/blog" element={<AdminBlogPosts />} />
           <Route path="/admin/usuarios" element={<AdminUsers />} />
           <Route path="/admin/novos-anuncios" element={<AdminNewAds />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
