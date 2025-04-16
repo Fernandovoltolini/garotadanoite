@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
@@ -11,10 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Star, Check, Diamond, Crown, Award, CircleDot, Sparkles, Gem } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { useRealTimeUpdates } from "@/hooks/useRealTimeUpdates";
+import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { Database } from '@/integrations/supabase/types';
 
-type Plan = Database['public']['Tables']['subscription_plans']['Row'];
+// Extend the Plan type to include color and icon properties
+type Plan = Database['public']['Tables']['subscription_plans']['Row'] & {
+  color?: string;
+  icon?: string;
+};
 
 interface DurationOption {
   label: string;
@@ -115,10 +118,10 @@ const PlanSelection = () => {
     
     // Fallback icon based on name
     switch (plan.name.toLowerCase()) {
-      case 'diamante': return '💎';
-      case 'rubi': return '★';
-      case 'safira': return '✧';
-      default: return '✦';
+      case 'diamante': return <Diamond className="h-6 w-6 mb-1" />;
+      case 'rubi': return <Star className="h-6 w-6 mb-1" />;
+      case 'safira': return <Gem className="h-6 w-6 mb-1" />;
+      default: return <CircleDot className="h-6 w-6 mb-1" />;
     }
   };
 
