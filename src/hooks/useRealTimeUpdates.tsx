@@ -1,8 +1,11 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
-export function useRealTimeUpdates<T>(table: string, initialData: T[] = []) {
+type TableName = keyof Database['public']['Tables'];
+
+export function useRealTimeUpdates<T>(table: TableName, initialData: T[] = []) {
   const [data, setData] = useState<T[]>(initialData);
 
   useEffect(() => {
@@ -13,7 +16,7 @@ export function useRealTimeUpdates<T>(table: string, initialData: T[] = []) {
         .select('*');
 
       if (initialResults) {
-        setData(initialResults);
+        setData(initialResults as T[]);
       }
     };
 
