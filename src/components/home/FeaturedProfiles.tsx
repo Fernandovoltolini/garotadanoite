@@ -1,182 +1,117 @@
 
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { MapPin, Clock } from "lucide-react";
 
-// Mock data for featured profiles
+// Sample featured profiles data
 const featuredProfiles = [
   {
-    id: 1,
+    id: "1",
     name: "Amanda",
-    age: 25,
-    city: "São Paulo",
-    photo: "https://images.unsplash.com/photo-1526413232644-8a40f03cc03b?q=80&w=500&auto=format&fit=crop",
-    description: "Elegante e sofisticada, ideal para eventos e jantares.",
-    rating: 4.8,
-    verified: true,
-    services: ["Eventos", "Jantares"]
-  },
-  {
-    id: 2,
-    name: "Carolina",
     age: 28,
-    city: "Rio de Janeiro",
-    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=500&auto=format&fit=crop",
-    description: "Carismática e comunicativa, perfeita para viagens.",
-    rating: 4.9,
-    verified: true,
-    services: ["Viagens", "Eventos"]
+    location: "São Paulo",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    tags: ["Massagem", "Acompanhante"],
+    hourPrice: 200,
+    featured: true
   },
   {
-    id: 3,
-    name: "Fernanda",
+    id: "2",
+    name: "Juliana",
     age: 24,
-    city: "Belo Horizonte",
-    photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=500&auto=format&fit=crop",
-    description: "Massagista qualificada com técnicas relaxantes.",
-    rating: 4.7,
-    verified: true,
-    services: ["Massagem", "Encontros"]
+    location: "Rio de Janeiro",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    tags: ["Eventos", "Viagens"],
+    hourPrice: 300,
+    featured: true
   },
   {
-    id: 4,
-    name: "Bianca",
+    id: "3",
+    name: "Carla",
     age: 26,
-    city: "Brasília",
-    photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=500&auto=format&fit=crop",
-    description: "Simpática e divertida para momentos descontraídos.",
-    rating: 4.6,
-    verified: true,
-    services: ["Encontros", "Jantares"]
+    location: "Belo Horizonte",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    tags: ["Festas", "Acompanhante"],
+    hourPrice: 250,
+    featured: false
   },
   {
-    id: 5,
+    id: "4",
     name: "Daniela",
     age: 29,
-    city: "Salvador",
-    photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=500&auto=format&fit=crop",
-    description: "Companhia ideal para viagens e eventos corporativos.",
-    rating: 4.9,
-    verified: true,
-    services: ["Viagens", "Eventos"]
-  },
-  {
-    id: 6,
-    name: "Gabriela",
-    age: 27,
-    city: "Curitiba",
-    photo: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=500&auto=format&fit=crop",
-    description: "Elegante e culta, perfeita para eventos sociais.",
-    rating: 4.7,
-    verified: true,
-    services: ["Eventos", "Encontros"]
+    location: "Brasília",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    tags: ["Massagem", "Jantar"],
+    hourPrice: 280,
+    featured: false
   }
 ];
 
-export default function FeaturedProfiles() {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -320, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 320, behavior: "smooth" });
-    }
-  };
-
+const FeaturedProfiles = () => {
   return (
-    <section className="py-16 bg-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
+    <section className="bg-black py-12 md:py-16">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-white">
-            Acompanhantes em <span className="text-brand-red">Destaque</span>
+            Perfis em <span className="text-brand-red">Destaque</span>
           </h2>
-          
-          <Link to="/busca" className="text-brand-red hover:text-red-400 text-sm font-medium">
-            Ver todos →
+          <Link to="/busca">
+            <Button variant="link" className="text-brand-red hover:text-red-400">
+              Ver todos
+            </Button>
           </Link>
         </div>
         
-        <div className="relative">
-          <button 
-            onClick={scrollLeft}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 rounded-full p-2 text-white border border-brand-red/30 hover:bg-brand-red/20 -ml-4 hidden md:flex"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          
-          <div 
-            ref={scrollContainerRef}
-            className="flex space-x-6 overflow-x-auto pb-6 scrollbar-hide"
-            style={{ scrollBehavior: "smooth" }}
-          >
-            {featuredProfiles.map((profile) => (
-              <div key={profile.id} className="card-profile min-w-[280px] max-w-[280px] flex-shrink-0">
-                <div className="relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {featuredProfiles.map((profile) => (
+            <Link to={`/perfil/${profile.id}`} key={profile.id}>
+              <Card className="overflow-hidden bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors h-full">
+                <div className="relative aspect-[3/4]">
                   <img 
-                    src={profile.photo} 
+                    src={profile.image} 
                     alt={profile.name} 
-                    className="w-full h-64 object-cover object-center"
+                    className="object-cover w-full h-full"
                   />
-                  {profile.verified && (
-                    <Badge className="absolute top-3 right-3 bg-brand-red text-white">
-                      Verificado
-                    </Badge>
+                  {profile.featured && (
+                    <Badge className="absolute top-2 right-2 bg-brand-red">Destaque</Badge>
                   )}
                 </div>
-                
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-white">
-                      {profile.name}, {profile.age}
-                    </h3>
-                    <div className="flex items-center gap-1 text-yellow-400">
-                      <Star size={16} fill="currentColor" />
-                      <span className="text-sm text-white">{profile.rating}</span>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="text-lg font-medium text-white">{profile.name}, {profile.age}</h3>
+                      <div className="flex items-center text-sm text-gray-400 mb-2">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{profile.location}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center text-brand-red font-medium">
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span>R$ {profile.hourPrice}</span>
                     </div>
                   </div>
                   
-                  <p className="text-gray-400 text-sm mb-2">{profile.city}</p>
-                  
-                  <p className="text-gray-300 text-sm mb-3 line-clamp-2">
-                    {profile.description}
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {profile.services.map((service, index) => (
-                      <span 
-                        key={index} 
-                        className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded"
+                  <div className="flex flex-wrap gap-2">
+                    {profile.tags.map((tag, index) => (
+                      <Badge 
+                        key={index}
+                        variant="secondary" 
+                        className="bg-gray-800 text-gray-300 hover:bg-gray-700"
                       >
-                        {service}
-                      </span>
+                        {tag}
+                      </Badge>
                     ))}
                   </div>
-                  
-                  <Button asChild className="w-full bg-brand-red hover:bg-red-900 text-white">
-                    <Link to={`/perfil/${profile.id}`}>
-                      Ver Perfil
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <button 
-            onClick={scrollRight}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 rounded-full p-2 text-white border border-brand-red/30 hover:bg-brand-red/20 -mr-4 hidden md:flex"
-          >
-            <ChevronRight size={24} />
-          </button>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default FeaturedProfiles;

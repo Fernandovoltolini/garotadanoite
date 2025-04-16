@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Star, Check } from "lucide-react";
+import { Star, Check, Diamond, Crown, Award, CircleDot, Sparkles, Gem } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { useRealTimeUpdates } from "@/hooks/useRealTimeUpdates";
@@ -45,6 +45,25 @@ const PlanSelection = () => {
     "3meses": { label: "3 meses", multiplier: 8.0 }
   };
 
+  // Only show durations of 1 day for free plans
+  const getAvailableDurations = (plan: Plan) => {
+    // For free plans (price = 0), only allow 1 day duration
+    if (plan && plan.price === 0) {
+      return {"1dia": durationOptions["1dia"]};
+    }
+    return durationOptions;
+  };
+
+  useEffect(() => {
+    // If a plan is selected and it's free, ensure duration is set to 1dia
+    if (selectedPlan) {
+      const plan = plans.find(p => p.id === selectedPlan);
+      if (plan && plan.price === 0 && selectedDuration !== "1dia") {
+        setSelectedDuration("1dia");
+      }
+    }
+  }, [selectedPlan, plans]);
+
   const calculatePrice = (basePrice: number, durationMultiplier: number) => {
     if (basePrice === 0) return 0;
     return Math.round(basePrice * durationMultiplier);
@@ -67,16 +86,34 @@ const PlanSelection = () => {
   };
 
   const getPlanBadgeColor = (plan: Plan) => {
-    switch (plan.name.toLowerCase()) {
-      case 'diamante': return 'bg-purple-500';
-      case 'rubi': return 'bg-red-500';
-      case 'safira': return 'bg-blue-500';
-      default: return 'bg-gray-500';
+    if (!plan.color) {
+      // Fallback colors based on name
+      switch (plan.name.toLowerCase()) {
+        case 'diamante': return 'bg-purple-500';
+        case 'rubi': return 'bg-red-500';
+        case 'safira': return 'bg-blue-500';
+        default: return 'bg-gray-500';
+      }
     }
+    
+    return `bg-${plan.color}-500`;
   };
 
   // Add helper to get plan icon
   const getPlanIcon = (plan: Plan) => {
+    if (plan.icon) {
+      switch (plan.icon) {
+        case 'diamond': return <Diamond className="h-6 w-6 mb-1" />;
+        case 'star': return <Star className="h-6 w-6 mb-1" />;
+        case 'crown': return <Crown className="h-6 w-6 mb-1" />;
+        case 'award': return <Award className="h-6 w-6 mb-1" />;
+        case 'sparkles': return <Sparkles className="h-6 w-6 mb-1" />;
+        case 'gem': return <Gem className="h-6 w-6 mb-1" />;
+        default: return <CircleDot className="h-6 w-6 mb-1" />;
+      }
+    }
+    
+    // Fallback icon based on name
     switch (plan.name.toLowerCase()) {
       case 'diamante': return '💎';
       case 'rubi': return '★';
@@ -126,10 +163,12 @@ const PlanSelection = () => {
                       onClick={() => setSelectedPlan(plan.id)}
                     >
                       <CardHeader className="text-center pb-2">
-                        <div className="text-2xl mb-2">{getPlanIcon(plan)}</div>
+                        <div className="text-2xl mb-2 flex justify-center">
+                          {getPlanIcon(plan)}
+                        </div>
                         <CardTitle className="text-white text-xl">{plan.name}</CardTitle>
                         <CardDescription className="text-lg font-bold text-brand-red">
-                          R$ {plan.price}
+                          {plan.price === 0 ? "Grátis" : `R$ ${plan.price}`}
                         </CardDescription>
                       </CardHeader>
                       
@@ -155,25 +194,26 @@ const PlanSelection = () => {
                 <div className="mb-6">
                   <h3 className="text-white text-lg font-medium mb-3">Duração do anúncio</h3>
                   <RadioGroup 
-                    defaultValue="3dias" 
-                    className="grid grid-cols-2 md:grid-cols-5 gap-2"
                     value={selectedDuration}
                     onValueChange={setSelectedDuration}
+                    className="grid grid-cols-2 md:grid-cols-5 gap-2"
                   >
-                    {Object.entries(durationOptions).map(([id, duration]) => (
-                      <div key={id} className="relative">
-                        <RadioGroupItem value={id} id={`duration-${id}`} className="peer sr-only" />
-                        <Label
-                          htmlFor={`duration-${id}`}
-                          className={`flex items-center justify-center p-2 rounded-md border text-center ${
-                            selectedDuration === id 
-                              ? "border-brand-red bg-gray-900" 
-                              : "border-gray-700 bg-gray-900/50"
-                          } hover:bg-gray-900 cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-brand-red`}
-                        >
-                          <span className="text-white text-sm">{duration.label}</span>
-                        </Label>
-                      </div>
+                    {plans.map(plan => plan.id === selectedPlan && (
+                      Object.entries(getAvailableDurations(plan)).map(([id, duration]) => (
+                        <div key={id} className="relative">
+                          <RadioGroupItem value={id} id={`duration-${id}`} className="peer sr-only" />
+                          <Label
+                            htmlFor={`duration-${id}`}
+                            className={`flex items-center justify-center p-2 rounded-md border text-center ${
+                              selectedDuration === id 
+                                ? "border-brand-red bg-gray-900" 
+                                : "border-gray-700 bg-gray-900/50"
+                            } hover:bg-gray-900 cursor-pointer transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-brand-red`}
+                          >
+                            <span className="text-white text-sm">{duration.label}</span>
+                          </Label>
+                        </div>
+                      ))
                     ))}
                   </RadioGroup>
                 </div>
@@ -209,7 +249,7 @@ const PlanSelection = () => {
                       <div className="flex justify-between items-center text-xl font-bold mb-4">
                         <span className="text-gray-400">Valor:</span>
                         <span className="text-brand-red">
-                          R$ {calculatePrice(plan.price, durationOptions[selectedDuration].multiplier)}
+                          {plan.price === 0 ? "Grátis" : `R$ ${calculatePrice(plan.price, durationOptions[selectedDuration].multiplier)}`}
                         </span>
                       </div>
                       

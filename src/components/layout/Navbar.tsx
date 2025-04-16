@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,8 +34,11 @@ const Navbar = () => {
       <div className="container flex h-16 items-center px-4">
         <Link to="/" className="mr-6">
           <div className="flex items-center">
-            <span className="hidden md:inline-block text-xl font-bold text-brand-red">Garota da Noite</span>
-            <span className="md:hidden text-xl font-bold text-brand-red">GDN</span>
+            <img 
+              src="/lovable-uploads/bde4bac6-1b46-405e-94a6-f68adcf65361.png" 
+              alt="Garota da Noite" 
+              className="h-8 md:h-10" 
+            />
           </div>
         </Link>
         <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 mx-6">
@@ -65,7 +69,13 @@ const Navbar = () => {
               </SheetTrigger>
               <SheetContent side="right" className="border-gray-800 bg-gray-950 text-white">
                 <SheetHeader>
-                  <SheetTitle className="text-white">Garota da Noite</SheetTitle>
+                  <SheetTitle className="text-white">
+                    <img 
+                      src="/lovable-uploads/bde4bac6-1b46-405e-94a6-f68adcf65361.png" 
+                      alt="Garota da Noite" 
+                      className="h-8" 
+                    />
+                  </SheetTitle>
                 </SheetHeader>
                 <div className="py-4">
                   <nav className="flex flex-col space-y-4">
@@ -83,7 +93,7 @@ const Navbar = () => {
                     </Link>
                   </nav>
                   <div className="mt-6 pt-6 border-t border-gray-800">
-                    <Link to="/planos" className="w-full bg-brand-red hover:bg-red-900 text-white px-4 py-2 rounded-md text-center block">
+                    <Link to="/planos" className="w-full bg-brand-red hover:bg-red-900 text-white px-4 py-3 rounded-md text-center block">
                       Anunciar
                     </Link>
                   </div>

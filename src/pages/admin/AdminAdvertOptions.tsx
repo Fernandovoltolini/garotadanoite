@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2, CircleDot } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +27,14 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/components/ui/tabs";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +50,8 @@ interface Plan {
     items: string[];
   } | null;
   description: string;
+  icon?: string;
+  color?: string;
 }
 
 interface Service {
@@ -51,6 +60,27 @@ interface Service {
   active: boolean;
 }
 
+// Color options
+const colorOptions = {
+  "red": "Vermelho",
+  "blue": "Azul",
+  "green": "Verde",
+  "purple": "Roxo",
+  "pink": "Rosa",
+  "yellow": "Amarelo",
+  "gray": "Cinza"
+};
+
+// Icon options
+const iconOptions = {
+  "diamond": "Diamante",
+  "star": "Estrela",
+  "gem": "Gema",
+  "award": "Prêmio",
+  "crown": "Coroa",
+  "sparkles": "Brilhos"
+};
+
 // Form schema for plans
 const planFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -58,7 +88,9 @@ const planFormSchema = z.object({
   price: z.coerce.number().min(0, "Preço não pode ser negativo"),
   boosts: z.coerce.number().min(0, "Número de impulsos não pode ser negativo"),
   featured: z.boolean().default(false),
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres")
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  icon: z.string().default("diamond"),
+  color: z.string().default("red")
 });
 
 // Form schema for services
@@ -94,7 +126,9 @@ const AdminAdvertOptions = () => {
       price: 0,
       boosts: 0,
       featured: false,
-      description: ""
+      description: "",
+      icon: "diamond",
+      color: "red"
     }
   });
 
@@ -109,11 +143,23 @@ const AdminAdvertOptions = () => {
 
   const handleAddPlan = async (data: PlanFormValues) => {
     try {
+      // Verify that free plans (price 0) only have duration_days of 1
+      if (data.price === 0 && data.duration_days !== 1) {
+        toast({ 
+          title: "Erro nas configurações do plano", 
+          description: "Planos gratuitos só podem ter duração de 1 dia.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const planData = {
         name: data.name,
         duration_days: data.duration_days,
         price: data.price,
         description: data.description,
+        icon: data.icon,
+        color: data.color,
         features: { 
           items: [
             `${data.boosts} impulsos incluídos`,
@@ -181,7 +227,9 @@ const AdminAdvertOptions = () => {
         price: plan.price,
         boosts: parseInt(boosts),
         featured,
-        description: plan.description
+        description: plan.description,
+        icon: plan.icon || "diamond",
+        color: plan.color || "red"
       });
       setEditingPlan(id);
     }
@@ -245,6 +293,8 @@ const AdminAdvertOptions = () => {
                           <TableHead>Nome</TableHead>
                           <TableHead>Duração</TableHead>
                           <TableHead>Preço</TableHead>
+                          <TableHead>Cor</TableHead>
+                          <TableHead>Ícone</TableHead>
                           <TableHead>Destaque</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
@@ -255,6 +305,15 @@ const AdminAdvertOptions = () => {
                             <TableCell className="font-medium">{plan.name}</TableCell>
                             <TableCell>{plan.duration_days} dias</TableCell>
                             <TableCell>R$ {plan.price.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <div 
+                                className={`w-6 h-6 rounded-full bg-${plan.color || 'gray'}-500`}
+                                title={colorOptions[plan.color as keyof typeof colorOptions] || "Cinza"}
+                              ></div>
+                            </TableCell>
+                            <TableCell>
+                              {plan.icon && iconOptions[plan.icon as keyof typeof iconOptions]}
+                            </TableCell>
                             <TableCell>
                               {plan.features?.items?.[1]?.includes('destaque') ? "Sim" : "Não"}
                             </TableCell>
@@ -329,6 +388,68 @@ const AdminAdvertOptions = () => {
                               <FormControl>
                                 <Input type="number" step="0.01" {...field} />
                               </FormControl>
+                              <FormMessage />
+                              {field.value === 0 && (
+                                <p className="text-xs text-amber-500">
+                                  Atenção: Planos gratuitos só podem ter duração de 1 dia.
+                                </p>
+                              )}
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={planForm.control}
+                          name="icon"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ícone do Plano</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um ícone" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {Object.entries(iconOptions).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={planForm.control}
+                          name="color"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cor do Plano</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione uma cor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {Object.entries(colorOptions).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>
+                                      <div className="flex items-center">
+                                        <div className={`w-4 h-4 rounded-full bg-${value}-500 mr-2`}></div>
+                                        <span>{label}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}

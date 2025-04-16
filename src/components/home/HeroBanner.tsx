@@ -1,37 +1,60 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Search, MapPin } from "lucide-react";
 
-export default function HeroBanner() {
+const HeroBanner = () => {
   return (
-    <div className="relative bg-black">
-      {/* Background with gradient overlay */}
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1516575017964-8c704617549e?q=80&w=1920&auto=format&fit=crop')] bg-cover bg-center opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black"></div>
-      </div>
+    <section className="relative bg-black text-white overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black z-10"></div>
       
-      {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40 flex flex-col items-center justify-center text-center">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mb-4">
-          Encontre a <span className="text-brand-red">companhia perfeita</span><br />
-          para momentos especiais
-        </h1>
-        
-        <p className="text-gray-300 text-lg md:text-xl max-w-2xl mb-8">
-          Conectamos você a acompanhantes premium em um ambiente seguro, 
-          discreto e sofisticado para experiências inesquecíveis.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <Button asChild size="lg" className="bg-brand-red hover:bg-red-800 text-white flex-1">
-            <Link to="/busca">Explorar Agora</Link>
-          </Button>
+      <div className="relative z-20 container mx-auto px-4 py-16 md:py-24">
+        <div className="text-center max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            Encontre Companhia de <span className="text-brand-red">Qualidade</span>
+          </h1>
           
-          <Button asChild size="lg" variant="outline" className="border-brand-red text-brand-red hover:bg-brand-red hover:text-white flex-1">
-            <Link to="/anunciar">Anunciar</Link>
-          </Button>
+          <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
+            O melhor site de acompanhantes do Brasil, com perfis verificados e serviços exclusivos para você
+          </p>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+            <Link to="/busca">
+              <Button size="lg" className="w-full sm:w-auto bg-brand-red hover:bg-red-900 text-white px-8 py-6 text-lg rounded-md">
+                <Search className="mr-2 h-5 w-5" />
+                Explorar
+              </Button>
+            </Link>
+            <Link to="/planos">
+              <Button size="lg" className="w-full sm:w-auto bg-transparent hover:bg-gray-800 text-white border border-white px-8 py-6 text-lg rounded-md">
+                Anunciar
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex items-center text-sm text-gray-300">
+              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
+              <span>São Paulo</span>
+            </div>
+            <div className="flex items-center text-sm text-gray-300">
+              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
+              <span>Rio de Janeiro</span>
+            </div>
+            <div className="flex items-center text-sm text-gray-300">
+              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
+              <span>Belo Horizonte</span>
+            </div>
+            <div className="flex items-center text-sm text-gray-300">
+              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
+              <span>Brasília</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
-}
+};
+
+export default HeroBanner;
