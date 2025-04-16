@@ -237,30 +237,36 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          color: string | null
           created_at: string
           description: string | null
           duration_days: number
           features: Json | null
+          icon: string | null
           id: string
           name: string
           price: number
           updated_at: string
         }
         Insert: {
+          color?: string | null
           created_at?: string
           description?: string | null
           duration_days: number
           features?: Json | null
+          icon?: string | null
           id?: string
           name: string
           price: number
           updated_at?: string
         }
         Update: {
+          color?: string | null
           created_at?: string
           description?: string | null
           duration_days?: number
           features?: Json | null
+          icon?: string | null
           id?: string
           name?: string
           price?: number

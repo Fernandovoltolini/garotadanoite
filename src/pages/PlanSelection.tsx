@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Star, Check, Diamond, Crown, Award, CircleDot, Sparkles, Gem } from "lucide-react";
@@ -15,8 +14,8 @@ import { Database } from '@/integrations/supabase/types';
 
 // Extend the Plan type to include color and icon properties
 type Plan = Database['public']['Tables']['subscription_plans']['Row'] & {
-  color?: string;
-  icon?: string;
+  color?: string | null;
+  icon?: string | null;
 };
 
 interface DurationOption {
