@@ -35,7 +35,7 @@ const PlanSelection = () => {
     if (plans.length > 0 && !selectedPlan) {
       setSelectedPlan(plans[0].id);
     }
-  }, [plans]);
+  }, [plans, selectedPlan]);
 
   const durationOptions: Record<string, DurationOption> = {
     "1dia": { label: "1 dia", multiplier: 0.5 },
@@ -109,40 +109,47 @@ const PlanSelection = () => {
             </CardHeader>
             
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {plans.map((plan) => (
-                  <Card 
-                    key={plan.id} 
-                    className={`border ${
-                      selectedPlan === plan.id 
-                        ? "border-brand-red" 
-                        : "border-gray-700"
-                    } bg-gray-900 hover:bg-gray-800 cursor-pointer transition-all`}
-                    onClick={() => setSelectedPlan(plan.id)}
-                  >
-                    <CardHeader className="text-center pb-2">
-                      <div className="text-2xl mb-2">{getPlanIcon(plan)}</div>
-                      <CardTitle className="text-white text-xl">{plan.name}</CardTitle>
-                      <CardDescription className="text-lg font-bold text-brand-red">
-                        R$ {plan.price}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <ul className="space-y-2 text-sm">
-                        {plan.features && typeof plan.features === 'object' && 
-                         Array.isArray((plan.features as any).items) && 
-                         (plan.features as any).items.map((feature: string, index: number) => (
-                          <li key={index} className="flex items-start">
-                            <Check className="h-4 w-4 mr-2 text-brand-red shrink-0 mt-0.5" />
-                            <span className="text-gray-300">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {plans.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  Nenhum plano disponível no momento. Por favor, volte mais tarde.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  {plans.map((plan) => (
+                    <Card 
+                      key={plan.id} 
+                      className={`border ${
+                        selectedPlan === plan.id 
+                          ? "border-brand-red" 
+                          : "border-gray-700"
+                      } bg-gray-900 hover:bg-gray-800 cursor-pointer transition-all`}
+                      onClick={() => setSelectedPlan(plan.id)}
+                    >
+                      <CardHeader className="text-center pb-2">
+                        <div className="text-2xl mb-2">{getPlanIcon(plan)}</div>
+                        <CardTitle className="text-white text-xl">{plan.name}</CardTitle>
+                        <CardDescription className="text-lg font-bold text-brand-red">
+                          R$ {plan.price}
+                        </CardDescription>
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <ul className="space-y-2 text-sm">
+                          {plan.features && typeof plan.features === 'object' && 
+                           (plan.features as any).items && 
+                           Array.isArray((plan.features as any).items) && 
+                           (plan.features as any).items.map((feature: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <Check className="h-4 w-4 mr-2 text-brand-red shrink-0 mt-0.5" />
+                              <span className="text-gray-300">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
               
               {selectedPlan && (
                 <div className="mb-6">
@@ -172,7 +179,7 @@ const PlanSelection = () => {
                 </div>
               )}
               
-              {selectedPlan && (
+              {selectedPlan && plans.length > 0 && (
                 <div className="bg-gray-900/70 p-4 rounded-md border border-gray-800 mb-6">
                   <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-3">
                     Resumo do Plano Selecionado
@@ -211,6 +218,7 @@ const PlanSelection = () => {
                       <div className="space-y-2">
                         {plan.features && typeof plan.features === 'object' && 
                          (plan.features as any).items && 
+                         Array.isArray((plan.features as any).items) && 
                          (plan.features as any).items.map((feature: string, index: number) => (
                           <div key={index} className="flex justify-between">
                             <span className="text-gray-400">{feature}</span>

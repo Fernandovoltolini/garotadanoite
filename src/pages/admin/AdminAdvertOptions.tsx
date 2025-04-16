@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   Table, TableBody, TableCaption, TableCell, TableHead, 
@@ -16,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,16 +30,18 @@ import {
 } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from "@/components/ui/use-toast";
 
 // Define interfaces for our data types
 interface Plan {
-  id: number; 
+  id: string; 
   name: string; 
-  duration: number; 
-  durationUnit: string; 
+  duration_days: number;
   price: number; 
-  boosts: number; 
-  featured: boolean;
+  features: {
+    items: string[];
+  } | null;
   description: string;
 }
 
@@ -48,62 +51,10 @@ interface Service {
   active: boolean;
 }
 
-// Sample data for advertising plans
-const initialPlans: Plan[] = [
-  { 
-    id: 1, 
-    name: "Safira", 
-    duration: 3, 
-    durationUnit: "dias", 
-    price: 29.90, 
-    boosts: 1, 
-    featured: false,
-    description: "Anúncio básico por 3 dias com 1 impulso"
-  },
-  { 
-    id: 2, 
-    name: "Rubi", 
-    duration: 15, 
-    durationUnit: "dias", 
-    price: 79.90, 
-    boosts: 3, 
-    featured: false,
-    description: "Anúncio por 15 dias com 3 impulsos"
-  },
-  { 
-    id: 3, 
-    name: "Esmeralda", 
-    duration: 30, 
-    durationUnit: "dias", 
-    price: 129.90, 
-    boosts: 5, 
-    featured: true,
-    description: "Anúncio mensal com 5 impulsos e destaque"
-  },
-  { 
-    id: 4, 
-    name: "Diamante", 
-    duration: 90, 
-    durationUnit: "dias", 
-    price: 299.90, 
-    boosts: 15, 
-    featured: true,
-    description: "Anúncio trimestral com 15 impulsos e destaque premium"
-  }
-];
-
-// Sample data for service categories
-const initialServices: Service[] = [
-  { id: 1, name: "Massagem", active: true },
-  { id: 2, name: "Acompanhante", active: true },
-  { id: 3, name: "Festas", active: false }
-];
-
 // Form schema for plans
 const planFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  duration: z.coerce.number().min(1, "Duração deve ser pelo menos 1"),
-  durationUnit: z.string(),
+  duration_days: z.coerce.number().min(1, "Duração deve ser pelo menos 1"),
   price: z.coerce.number().min(0, "Preço não pode ser negativo"),
   boosts: z.coerce.number().min(0, "Número de impulsos não pode ser negativo"),
   featured: z.boolean().default(false),
@@ -121,31 +72,25 @@ type PlanFormValues = z.infer<typeof planFormSchema>;
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 
 const AdminAdvertOptions = () => {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [editingPlan, setEditingPlan] = useState<number | null>(null);
+  // Get subscription plans from Supabase with real-time updates
+  const plans = useRealTimeUpdates<Plan>('subscription_plans', []);
+  
+  // Local state for services (since there's no services table yet)
+  const [services, setServices] = useState<Service[]>([
+    { id: 1, name: "Massagem", active: true },
+    { id: 2, name: "Acompanhante", active: true },
+    { id: 3, name: "Festas", active: false }
+  ]);
+  
+  const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<number | null>(null);
-
-  // Use real-time updates for plans and services
-  const realTimePlans = useRealTimeUpdates<Plan>('subscription_plans', plans);
-  const realTimeServices = useRealTimeUpdates<Service>('services', services);
-
-  // Update local state when real-time data changes
-  useEffect(() => {
-    setPlans(realTimePlans);
-  }, [realTimePlans]);
-
-  useEffect(() => {
-    setServices(realTimeServices);
-  }, [realTimeServices]);
 
   // Form for plans
   const planForm = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema),
     defaultValues: {
       name: "",
-      duration: 1,
-      durationUnit: "dias",
+      duration_days: 1,
       price: 0,
       boosts: 0,
       featured: false,
@@ -162,27 +107,47 @@ const AdminAdvertOptions = () => {
     }
   });
 
-  const handleAddPlan = (data: PlanFormValues) => {
-    if (editingPlan) {
-      setPlans(plans.map(plan => 
-        plan.id === editingPlan ? { ...plan, ...data } : plan
-      ));
-      setEditingPlan(null);
-    } else {
-      // Create a complete Plan object with all required properties
-      const newPlan: Plan = {
-        id: Date.now(),
+  const handleAddPlan = async (data: PlanFormValues) => {
+    try {
+      const planData = {
         name: data.name,
-        duration: data.duration,
-        durationUnit: data.durationUnit,
+        duration_days: data.duration_days,
         price: data.price,
-        boosts: data.boosts,
-        featured: data.featured,
-        description: data.description
+        description: data.description,
+        features: { 
+          items: [
+            `${data.boosts} impulsos incluídos`,
+            data.featured ? 'Anúncio em destaque' : 'Anúncio padrão',
+          ]
+        }
       };
-      setPlans([...plans, newPlan]);
+
+      if (editingPlan) {
+        const { error } = await supabase
+          .from('subscription_plans')
+          .update(planData)
+          .eq('id', editingPlan);
+          
+        if (error) throw error;
+        toast({ title: "Plano atualizado com sucesso!" });
+        setEditingPlan(null);
+      } else {
+        const { error } = await supabase
+          .from('subscription_plans')
+          .insert([planData]);
+          
+        if (error) throw error;
+        toast({ title: "Plano adicionado com sucesso!" });
+      }
+      planForm.reset();
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      toast({ 
+        title: "Erro ao salvar plano", 
+        description: "Ocorreu um erro ao salvar o plano. Tente novamente.",
+        variant: "destructive"
+      });
     }
-    planForm.reset();
   };
 
   const handleAddService = (data: ServiceFormValues) => {
@@ -203,10 +168,21 @@ const AdminAdvertOptions = () => {
     serviceForm.reset();
   };
 
-  const handleEditPlan = (id: number) => {
+  const handleEditPlan = (id: string) => {
     const plan = plans.find(p => p.id === id);
     if (plan) {
-      planForm.reset(plan);
+      // Extract values from features for the form
+      const boosts = plan.features?.items?.[0]?.match(/(\d+)/)?.[0] || "0";
+      const featured = plan.features?.items?.[1]?.includes('destaque') || false;
+      
+      planForm.reset({
+        name: plan.name,
+        duration_days: plan.duration_days,
+        price: plan.price,
+        boosts: parseInt(boosts),
+        featured,
+        description: plan.description
+      });
       setEditingPlan(id);
     }
   };
@@ -219,8 +195,23 @@ const AdminAdvertOptions = () => {
     }
   };
 
-  const handleDeletePlan = (id: number) => {
-    setPlans(plans.filter(plan => plan.id !== id));
+  const handleDeletePlan = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      toast({ title: "Plano removido com sucesso!" });
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast({ 
+        title: "Erro ao remover plano", 
+        description: "Ocorreu um erro ao remover o plano. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteService = (id: number) => {
@@ -254,7 +245,6 @@ const AdminAdvertOptions = () => {
                           <TableHead>Nome</TableHead>
                           <TableHead>Duração</TableHead>
                           <TableHead>Preço</TableHead>
-                          <TableHead>Impulsos</TableHead>
                           <TableHead>Destaque</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
@@ -263,10 +253,11 @@ const AdminAdvertOptions = () => {
                         {plans.map((plan) => (
                           <TableRow key={plan.id}>
                             <TableCell className="font-medium">{plan.name}</TableCell>
-                            <TableCell>{plan.duration} {plan.durationUnit}</TableCell>
+                            <TableCell>{plan.duration_days} dias</TableCell>
                             <TableCell>R$ {plan.price.toFixed(2)}</TableCell>
-                            <TableCell>{plan.boosts}</TableCell>
-                            <TableCell>{plan.featured ? "Sim" : "Não"}</TableCell>
+                            <TableCell>
+                              {plan.features?.items?.[1]?.includes('destaque') ? "Sim" : "Não"}
+                            </TableCell>
                             <TableCell className="text-right space-x-2">
                               <Button 
                                 variant="outline" 
@@ -315,72 +306,47 @@ const AdminAdvertOptions = () => {
                           )}
                         />
                         
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={planForm.control}
-                            name="duration"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Duração</FormLabel>
-                                <FormControl>
-                                  <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={planForm.control}
-                            name="durationUnit"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Unidade</FormLabel>
-                                <FormControl>
-                                  <select
-                                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
-                                    {...field}
-                                  >
-                                    <option value="dias">dias</option>
-                                    <option value="semanas">semanas</option>
-                                    <option value="meses">meses</option>
-                                  </select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        <FormField
+                          control={planForm.control}
+                          name="duration_days"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Duração (dias)</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={planForm.control}
-                            name="price"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Preço (R$)</FormLabel>
-                                <FormControl>
-                                  <Input type="number" step="0.01" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={planForm.control}
-                            name="boosts"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Impulsos</FormLabel>
-                                <FormControl>
-                                  <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        <FormField
+                          control={planForm.control}
+                          name="price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Preço (R$)</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="0.01" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={planForm.control}
+                          name="boosts"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Impulsos</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         
                         <FormField
                           control={planForm.control}
