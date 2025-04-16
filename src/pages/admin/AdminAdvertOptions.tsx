@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Table, TableBody, TableCaption, TableCell, TableHead, 
   TableHeader, TableRow 
@@ -29,6 +28,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 
 // Define interfaces for our data types
 interface Plan {
@@ -121,10 +121,23 @@ type PlanFormValues = z.infer<typeof planFormSchema>;
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 
 const AdminAdvertOptions = () => {
-  const [plans, setPlans] = useState<Plan[]>(initialPlans);
-  const [services, setServices] = useState<Service[]>(initialServices);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [editingPlan, setEditingPlan] = useState<number | null>(null);
   const [editingService, setEditingService] = useState<number | null>(null);
+
+  // Use real-time updates for plans and services
+  const realTimePlans = useRealTimeUpdates<Plan>('subscription_plans', plans);
+  const realTimeServices = useRealTimeUpdates<Service>('services', services);
+
+  // Update local state when real-time data changes
+  useEffect(() => {
+    setPlans(realTimePlans);
+  }, [realTimePlans]);
+
+  useEffect(() => {
+    setServices(realTimeServices);
+  }, [realTimeServices]);
 
   // Form for plans
   const planForm = useForm<PlanFormValues>({

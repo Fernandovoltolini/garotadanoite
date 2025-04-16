@@ -1,11 +1,11 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Clock, Calendar, X } from "lucide-react";
 import { toast } from "sonner";
+import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 
 // Mock data
 const pendingAds = [
@@ -42,6 +42,16 @@ const pendingAds = [
 ];
 
 const AdminNewAds = () => {
+  const [ads, setAds] = useState<any[]>([]);
+  
+  // Use real-time updates for advertisements
+  const realTimeAds = useRealTimeUpdates('advertisements', ads);
+
+  // Update local state when real-time data changes
+  useEffect(() => {
+    setAds(realTimeAds);
+  }, [realTimeAds]);
+
   const handleApprove = (id) => {
     toast.success("Anúncio aprovado com sucesso!");
     // Aqui você implementaria a lógica de aprovação do anúncio
@@ -58,7 +68,7 @@ const AdminNewAds = () => {
         <h1 className="text-3xl font-bold mb-8">Novos Anúncios Pendentes</h1>
         
         <div className="grid gap-6">
-          {pendingAds.map((ad) => (
+          {ads.map((ad) => (
             <Card key={ad.id}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
