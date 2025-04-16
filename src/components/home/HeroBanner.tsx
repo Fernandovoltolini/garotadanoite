@@ -1,11 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Search, MapPin } from "lucide-react";
-
 const HeroBanner = () => {
-  return (
-    <section className="relative bg-black text-white overflow-hidden">
+  return <section className="relative bg-black text-white overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black z-10"></div>
       
@@ -34,27 +31,13 @@ const HeroBanner = () => {
           </div>
           
           <div className="flex flex-wrap justify-center gap-3">
-            <div className="flex items-center text-sm text-gray-300">
-              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
-              <span>São Paulo</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-300">
-              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
-              <span>Rio de Janeiro</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-300">
-              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
-              <span>Belo Horizonte</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-300">
-              <MapPin className="h-4 w-4 mr-1 text-brand-red" />
-              <span>Brasília</span>
-            </div>
+            
+            
+            
+            
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroBanner;
