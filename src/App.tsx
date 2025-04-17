@@ -15,6 +15,8 @@ import AdminAdvertOptions from "./pages/admin/AdminAdvertOptions";
 import AdminBlogPosts from "./pages/admin/AdminBlogPosts";
 import AdminUsers from "./pages/admin/AdminUsers";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Verification from "./pages/Verification";
 
 // Create router with all necessary routes
 const router = createBrowserRouter([
@@ -59,6 +61,14 @@ const router = createBrowserRouter([
     element: <AdminUsers />
   },
   {
+    path: "/auth",
+    element: <Auth />
+  },
+  {
+    path: "/verificacao",
+    element: <Verification />
+  },
+  {
     path: "*",
     element: <NotFound />
   }
@@ -69,4 +79,3 @@ function App() {
 }
 
 export default App;
-
