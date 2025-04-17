@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Star, Check, Diamond, Crown, Award, CircleDot, Sparkles, Gem } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge"; // Add this import for the Badge component
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { Database } from '@/integrations/supabase/types';
 
