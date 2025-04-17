@@ -10,8 +10,12 @@ import Advertise from "./pages/Advertise";
 import Admin from "./pages/Admin";
 import AdminNewAds from "./pages/admin/AdminNewAds";
 import AdminCreateAd from "./pages/admin/AdminCreateAd";
+import NotFound from "./pages/NotFound";
+import AdminAdvertOptions from "./pages/admin/AdminAdvertOptions";
+import AdminBlogPosts from "./pages/admin/AdminBlogPosts";
+import AdminUsers from "./pages/admin/AdminUsers";
 
-// We'll create a simpler router with only the pages that exist
+// Create router with all necessary routes
 const router = createBrowserRouter([
   {
     path: "/",
@@ -41,6 +45,22 @@ const router = createBrowserRouter([
     path: "/admin/criar-anuncio",
     element: <AdminCreateAd />
   },
+  {
+    path: "/admin/anuncios",
+    element: <AdminAdvertOptions />
+  },
+  {
+    path: "/admin/blog",
+    element: <AdminBlogPosts />
+  },
+  {
+    path: "/admin/usuarios",
+    element: <AdminUsers />
+  },
+  {
+    path: "*",
+    element: <NotFound />
+  }
 ]);
 
 function App() {

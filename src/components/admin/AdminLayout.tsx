@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FileText, Home, LogOut, Settings, Users, Clipboard, PlusCircle } from "lucide-react";
@@ -8,7 +7,6 @@ import {
   SidebarHeader, 
   SidebarContent, 
   SidebarFooter, 
-  SidebarTrigger,
   SidebarInset,
   SidebarGroup,
   SidebarGroupLabel,
