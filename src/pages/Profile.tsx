@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { MessageCircle, MapPin, Clock, CheckCircle, Languages, Star, Calendar, Phone, Smartphone } from "lucide-react";
+import { MessageCircle, MapPin, Clock, CheckCircle, Languages, Star, Calendar, Phone, Smartphone, Check } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -162,7 +162,7 @@ const Profile = () => {
 
   // Get profile images or use placeholders
   const images = Array.isArray(profile.images) && profile.images.length > 0
-    ? profile.images
+    ? profile.images.map(img => String(img)) // Convert any JSON values to string
     : ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg", "/placeholder.svg"];
 
   // Parse services from JSON if available
@@ -171,7 +171,7 @@ const Profile = () => {
     try {
       if (typeof profile.services === 'object') {
         // Extract values from the services object
-        services = Object.values(profile.services).filter(Boolean);
+        services = Object.values(profile.services).filter(Boolean).map(String);
       }
     } catch (e) {
       console.error("Error parsing services:", e);
