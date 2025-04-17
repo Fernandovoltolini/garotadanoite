@@ -14,12 +14,13 @@ import NotFound from "./pages/NotFound";
 import AdminAdvertOptions from "./pages/admin/AdminAdvertOptions";
 import AdminBlogPosts from "./pages/admin/AdminBlogPosts";
 import AdminUsers from "./pages/admin/AdminUsers";
+import Index from "./pages/Index";
 
 // Create router with all necessary routes
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <PlanSelection />,
+    element: <Index />,
   },
   {
     path: "/profile/:id",
@@ -68,3 +69,4 @@ function App() {
 }
 
 export default App;
+
