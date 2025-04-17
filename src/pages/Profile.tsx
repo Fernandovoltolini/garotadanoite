@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { MessageCircle, MapPin, Clock, CheckCircle, Languages, Star, Calendar } from "lucide-react";
+import { MessageCircle, MapPin, Clock, CheckCircle, Languages, Star, Calendar, Phone, Smartphone } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,62 +11,97 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { Database } from "@/integrations/supabase/types";
 
-// Mock data for profile
-const profileData = {
-  id: "1",
-  name: "Ana",
-  age: 25,
-  city: "São Paulo",
-  verified: true,
-  rating: 4.8,
-  reviews: 27,
-  description: "Sou carinhosa, adoro conversar e oferecer momentos inesquecíveis. Acompanhante de luxo para eventos sociais e encontros especiais.",
-  services: [
-    "Massagem relaxante",
-    "Acompanhante para eventos",
-    "Jantar romântico",
-    "Conversação e companhia"
-  ],
-  prices: {
-    hour: 300,
-    halfHour: 180,
-    fifteenMin: 100,
-    overnight: 2000
-  },
-  images: [
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-  ],
-  details: {
-    height: "1.72m",
-    languages: ["Português", "Inglês", "Espanhol"],
-    availability: "Segunda à Sábado, das 18h às 00h"
-  },
-  reviewsList: [
-    { id: 1, user: "Cliente123", rating: 5, comment: "Excelente companhia, muito atenciosa e carinhosa." },
-    { id: 2, user: "Usuario987", rating: 5, comment: "Simplesmente incrível, superou todas as expectativas!" },
-    { id: 3, user: "Apreciador22", rating: 4, comment: "Ótima conversa e presença, recomendo fortemente." }
-  ]
-};
+type Advertisement = Database['public']['Tables']['advertisements']['Row'];
 
 const Profile = () => {
   const { id } = useParams();
   const [currentImage, setCurrentImage] = useState(0);
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [profile, setProfile] = useState<Advertisement | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<any>(null);
   
-  // For demonstration, we're using the mock data
-  // In a real app, you would fetch data based on the ID
-  const profile = profileData;
+  // Fetch advertisement data
+  useEffect(() => {
+    const fetchAdvertisement = async () => {
+      setLoading(true);
+      if (!id) return;
+      
+      try {
+        const { data: advertisement, error } = await supabase
+          .from('advertisements')
+          .select('*, user_id')
+          .eq('id', id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching advertisement:", error);
+          toast({
+            title: "Erro ao carregar",
+            description: "Não foi possível carregar este anúncio.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        setProfile(advertisement);
+        
+        // Fetch user profile data
+        if (advertisement?.user_id) {
+          const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', advertisement.user_id)
+            .single();
+            
+          if (!userError && userData) {
+            setUserData(userData);
+          }
+        }
+      } catch (err) {
+        console.error("Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAdvertisement();
+  }, [id, toast]);
 
   const handleContactClick = () => {
+    if (!profile || !userData) {
+      toast({
+        title: "Contato indisponível",
+        description: "Informações de contato não disponíveis.",
+      });
+      return;
+    }
+    
     toast({
       title: "Contato solicitado!",
-      description: "Você precisa estar logado para entrar em contato.",
+      description: userData.phone 
+        ? `Ligue para ${userData.phone}` 
+        : "Informações de contato não disponíveis.",
     });
+  };
+
+  const handleWhatsAppClick = () => {
+    if (!userData?.phone) {
+      toast({
+        title: "WhatsApp indisponível",
+        description: "Este perfil não tem WhatsApp cadastrado.",
+      });
+      return;
+    }
+    
+    // Format phone number for WhatsApp (remove non-digits)
+    const phoneNumber = userData.phone.replace(/\D/g, '');
+    window.open(`https://wa.me/${phoneNumber}`, '_blank');
   };
 
   const handleFavoriteToggle = () => {
@@ -74,8 +109,8 @@ const Profile = () => {
     toast({
       title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
       description: isFavorite 
-        ? `${profile.name} foi removida dos seus favoritos` 
-        : `${profile.name} foi adicionada aos seus favoritos`,
+        ? `Anúncio removido dos seus favoritos` 
+        : `Anúncio adicionado aos seus favoritos`,
     });
   };
 
@@ -87,12 +122,61 @@ const Profile = () => {
   };
 
   const handleNextImage = () => {
+    if (!profile?.images || !Array.isArray(profile.images)) return;
     setCurrentImage((prev) => (prev + 1) % profile.images.length);
   };
 
   const handlePrevImage = () => {
+    if (!profile?.images || !Array.isArray(profile.images)) return;
     setCurrentImage((prev) => (prev - 1 + profile.images.length) % profile.images.length);
   };
+
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="animate-pulse text-white">Carregando perfil...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Handle no profile found
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-white">
+            <h1 className="text-3xl font-bold mb-4">Anúncio não encontrado</h1>
+            <p>Este anúncio não existe ou foi removido.</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Get profile images or use placeholders
+  const images = Array.isArray(profile.images) && profile.images.length > 0
+    ? profile.images
+    : ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg", "/placeholder.svg"];
+
+  // Parse services from JSON if available
+  let services: string[] = [];
+  if (profile.services) {
+    try {
+      if (typeof profile.services === 'object') {
+        // Extract values from the services object
+        services = Object.values(profile.services).filter(Boolean);
+      }
+    } catch (e) {
+      console.error("Error parsing services:", e);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
@@ -104,8 +188,8 @@ const Profile = () => {
           {/* Image gallery */}
           <div className="relative w-full md:w-1/2 aspect-[4/3] rounded-lg overflow-hidden border border-brand-red/40">
             <img 
-              src={profile.images[currentImage]} 
-              alt={`Foto de ${profile.name}`}
+              src={images[currentImage]} 
+              alt={`Foto do anúncio`}
               className="w-full h-full object-cover"
             />
             
@@ -136,7 +220,7 @@ const Profile = () => {
             </div>
             
             <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-              {profile.images.map((_, index) => (
+              {images.map((_, index) => (
                 <button 
                   key={index} 
                   className={`w-2 h-2 rounded-full ${currentImage === index ? 'bg-brand-red' : 'bg-white/50'}`}
@@ -151,42 +235,62 @@ const Profile = () => {
           {/* Profile info */}
           <div className="w-full md:w-1/2 text-white">
             <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-3xl font-bold">{profile.name}, {profile.age}</h1>
-              {profile.verified && (
+              <h1 className="text-3xl font-bold">{profile.title}</h1>
+              {profile.is_active && (
                 <span className="bg-brand-red text-white text-xs px-2 py-1 rounded-full flex items-center">
-                  <CheckCircle className="w-3 h-3 mr-1" /> Verificada
+                  <CheckCircle className="w-3 h-3 mr-1" /> Verificado
                 </span>
               )}
             </div>
             
             <div className="flex items-center gap-4 mb-4 text-gray-300">
               <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-1" /> {profile.city}
+                <MapPin className="w-4 h-4 mr-1" /> {profile.location || "Localização não informada"}
               </div>
               <div className="flex items-center">
-                <Star className="w-4 h-4 mr-1 text-yellow-500" /> {profile.rating} ({profile.reviews} avaliações)
+                <Star className="w-4 h-4 mr-1 text-yellow-500" /> {profile.views_count || 0} visualizações
               </div>
             </div>
             
             <p className="text-gray-300 mb-6">{profile.description}</p>
             
             <div className="flex flex-wrap gap-2 mb-6">
-              <div className="flex items-center text-sm text-gray-300">
-                <Languages className="w-4 h-4 mr-1" /> 
-                <span className="font-semibold mr-2">Idiomas:</span>
-                {profile.details.languages.join(', ')}
-              </div>
+              {services.length > 0 && (
+                <div className="w-full">
+                  <h3 className="text-md font-medium mb-2">Serviços em Destaque:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {services.slice(0, 3).map((service, index) => (
+                      <Badge key={index} className="bg-brand-red text-white py-1">
+                        {service}
+                      </Badge>
+                    ))}
+                    {services.length > 3 && (
+                      <Badge className="bg-gray-700 text-white py-1">
+                        +{services.length - 3} mais
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Button className="flex-1" onClick={handleContactClick}>
-                <MessageCircle className="w-4 h-4 mr-2" /> Entrar em Contato
+                <Phone className="w-4 h-4 mr-2" /> Ligar
               </Button>
               
               <Button 
                 variant="outline" 
+                onClick={handleWhatsAppClick}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white border-none"
+              >
+                <Smartphone className="w-4 h-4 mr-2" /> WhatsApp
+              </Button>
+
+              <Button 
+                variant="outline" 
                 onClick={handleFavoriteToggle}
-                className={isFavorite ? "bg-brand-red text-white" : ""}
+                className={`${isFavorite ? "bg-brand-red text-white" : ""}`}
               >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
@@ -207,30 +311,12 @@ const Profile = () => {
         </div>
         
         {/* Tabs for details, services, and reviews */}
-        <Tabs defaultValue="details" className="mb-8">
+        <Tabs defaultValue="services" className="mb-8">
           <TabsList className="w-full bg-secondary">
-            <TabsTrigger value="details" className="flex-1">Detalhes</TabsTrigger>
             <TabsTrigger value="services" className="flex-1">Serviços & Valores</TabsTrigger>
+            <TabsTrigger value="details" className="flex-1">Detalhes</TabsTrigger>
             <TabsTrigger value="reviews" className="flex-1">Avaliações</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="details" className="text-white mt-4">
-            <Card className="bg-secondary border-gray-800">
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">Altura:</span>
-                    <span>{profile.details.height}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-gray-400">Disponibilidade:</span>
-                    <span>{profile.details.availability}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
           
           <TabsContent value="services" className="text-white mt-4">
             <Card className="bg-secondary border-gray-800">
@@ -238,53 +324,58 @@ const Profile = () => {
                 {/* Serviços como lista */}
                 <div className="mb-6">
                   <h3 className="text-lg font-medium mb-3">Serviços Oferecidos:</h3>
-                  <ul className="list-disc pl-6 space-y-1">
-                    {profile.services.map((service, index) => (
-                      <li key={index}>{service}</li>
-                    ))}
-                  </ul>
+                  {services.length > 0 ? (
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {services.map((service, index) => (
+                        <li key={index} className="flex items-center">
+                          <Check className="h-4 w-4 mr-2 text-brand-red" />
+                          <span>{service}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-400">Nenhum serviço específico informado.</p>
+                  )}
                 </div>
                 
-                {/* Preços separados por duração */}
+                {/* Preços */}
                 <div>
                   <h3 className="text-lg font-medium mb-3">Valores:</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2" />
-                        15 minutos
-                      </span>
-                      <span className="font-semibold text-brand-red">
-                        R$ {profile.prices.fifteenMin}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2" />
-                        30 minutos
-                      </span>
-                      <span className="font-semibold text-brand-red">
-                        R$ {profile.prices.halfHour}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2" />
-                        1 hora
-                      </span>
-                      <span className="font-semibold text-brand-red">
-                        R$ {profile.prices.hour}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                      <span className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Pernoite
-                      </span>
-                      <span className="font-semibold text-brand-red">
-                        R$ {profile.prices.overnight}
-                      </span>
-                    </div>
+                  <div className="bg-gray-900/70 rounded-lg p-4">
+                    {profile.price ? (
+                      <div className="flex justify-between items-center py-2">
+                        <span className="flex items-center font-medium">
+                          <Clock className="w-5 h-5 mr-2" />
+                          Valor base
+                        </span>
+                        <span className="font-bold text-xl text-brand-red">
+                          R$ {profile.price}
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-center py-2">
+                        Entre em contato para consultar valores
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="details" className="text-white mt-4">
+            <Card className="bg-secondary border-gray-800">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-gray-400">Local:</span>
+                    <span>{profile.location || "Não informado"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-gray-400">Disponibilidade:</span>
+                    <span>Entre em contato para verificar</span>
                   </div>
                 </div>
               </CardContent>
@@ -293,34 +384,9 @@ const Profile = () => {
           
           <TabsContent value="reviews" className="text-white mt-4">
             <Card className="bg-secondary border-gray-800">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {profile.reviewsList.map((review) => (
-                    <div key={review.id} className="pb-4 border-b border-gray-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8 bg-gray-700">
-                            <AvatarFallback>{review.user[0]}</AvatarFallback>
-                          </Avatar>
-                          <span>{review.user}</span>
-                        </div>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`w-4 h-4 ${
-                                i < review.rating ? "text-yellow-500 fill-yellow-500" : "text-gray-500"
-                              }`} 
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-gray-300 text-sm">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-gray-800 text-center">
+              <CardContent className="p-6 text-center">
+                <p className="text-gray-400 mb-4">Avaliações em breve</p>
+                <div className="mt-4 pt-4 border-t border-gray-800">
                   <Button variant="outline" size="sm" onClick={handleReportContent}>
                     Reportar conteúdo inadequado
                   </Button>

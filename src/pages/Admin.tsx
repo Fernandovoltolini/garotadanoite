@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Settings, Users } from "lucide-react";
+import { FileText, Settings, Users, Clipboard, PlusCircle } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 
 const Admin = () => {
@@ -10,10 +10,22 @@ const Admin = () => {
   
   const adminOptions = [
     {
-      title: "Gerenciar Anúncios",
+      title: "Gerenciar Planos e Anúncios",
       description: "Administre planos, serviços oferecidos e opções de anúncios",
       icon: <Settings className="w-12 h-12 text-red-600" />,
       action: () => navigate("/admin/anuncios")
+    },
+    {
+      title: "Novos Anúncios",
+      description: "Aprovar ou rejeitar anúncios pendentes",
+      icon: <Clipboard className="w-12 h-12 text-red-600" />,
+      action: () => navigate("/admin/novos-anuncios")
+    },
+    {
+      title: "Criar Anúncio",
+      description: "Crie novos anúncios e atribua a usuários",
+      icon: <PlusCircle className="w-12 h-12 text-red-600" />,
+      action: () => navigate("/admin/criar-anuncio")
     },
     {
       title: "Gerenciar Blog",

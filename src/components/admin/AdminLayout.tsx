@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FileText, Home, LogOut, Settings, Users, Clipboard } from "lucide-react";
+import { FileText, Home, LogOut, Settings, Users, Clipboard, PlusCircle } from "lucide-react";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -33,6 +34,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       title: "Novos Anúncios",
       path: "/admin/novos-anuncios",
       icon: <Clipboard className="w-4 h-4" />
+    },
+    {
+      title: "Criar Anúncio",
+      path: "/admin/criar-anuncio",
+      icon: <PlusCircle className="w-4 h-4" />
     },
     { 
       title: "Opções de Anúncios", 
