@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -97,13 +96,13 @@ const Dashboard = () => {
     } else if (verificationStatus === "none" || verificationStatus === "rejected") {
       navigate("/verificacao-documentos");
     } else {
-      toast({
-        title: "Verificação pendente",
-        description: "Seus documentos estão em análise. Você poderá criar anúncios quando eles forem aprovados.",
-        variant: "warning",
-      });
-    }
-  };
+    toast({
+      title: "Verificação pendente",
+      description: "Seus documentos estão em análise. Você poderá criar anúncios quando eles forem aprovados.",
+      variant: "destructive" // Changed from "warning" to "destructive"
+    });
+  }
+};
 
   if (isLoading) {
     return (

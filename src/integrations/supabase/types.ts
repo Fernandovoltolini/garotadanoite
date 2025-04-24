@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_config: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       advertisement_boosts: {
         Row: {
           advertisement_id: string
@@ -56,6 +83,7 @@ export type Database = {
           created_at: string
           description: string | null
           expires_at: string | null
+          featured: boolean | null
           id: string
           images: string[] | null
           is_active: boolean | null
@@ -72,6 +100,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expires_at?: string | null
+          featured?: boolean | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -88,6 +117,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expires_at?: string | null
+          featured?: boolean | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -146,6 +176,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      cities: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          state_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          state_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          state_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -210,6 +272,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms: boolean | null
+          age: number | null
+          bio: string | null
+          city_id: string | null
           created_at: string
           first_name: string | null
           id: string
@@ -218,6 +284,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_terms?: boolean | null
+          age?: number | null
+          bio?: string | null
+          city_id?: string | null
           created_at?: string
           first_name?: string | null
           id: string
@@ -226,12 +296,72 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_terms?: boolean | null
+          age?: number | null
+          bio?: string | null
+          city_id?: string | null
           created_at?: string
           first_name?: string | null
           id?: string
           last_name?: string | null
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      states: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -246,6 +376,7 @@ export type Database = {
           id: string
           name: string
           price: number
+          terms: string | null
           updated_at: string
         }
         Insert: {
@@ -258,6 +389,7 @@ export type Database = {
           id?: string
           name: string
           price: number
+          terms?: string | null
           updated_at?: string
         }
         Update: {
@@ -270,6 +402,7 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+          terms?: string | null
           updated_at?: string
         }
         Relationships: []

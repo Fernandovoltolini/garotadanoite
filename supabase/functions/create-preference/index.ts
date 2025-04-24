@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -28,11 +27,10 @@ serve(async (req) => {
     // Get Mercado Pago credentials from database
     const { data: credentials, error: credentialsError } = await supabase
       .from("admin_config")
-      .select("value")
-      .eq("key", "mercadopago_access_token")
-      .single();
+      .select("*")
+      .in("key", ["mercadopago_access_token", "mercadopago_public_key"]);
 
-    if (credentialsError || !credentials) {
+    if (credentialsError || !credentials || credentials.length < 2) {
       return new Response(
         JSON.stringify({ error: "Failed to get Mercado Pago credentials" }),
         {
@@ -42,7 +40,8 @@ serve(async (req) => {
       );
     }
 
-    const accessToken = credentials.value;
+    const accessToken = credentials.find(c => c.key === "mercadopago_access_token")?.value;
+    const publicKey = credentials.find(c => c.key === "mercadopago_public_key")?.value;
 
     // Create a preference in Mercado Pago
     const url = "https://api.mercadopago.com/checkout/preferences";
@@ -98,7 +97,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         preferenceId: data.id,
-        publicKey: Deno.env.get("MERCADOPAGO_PUBLIC_KEY"),
+        publicKey: publicKey,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
