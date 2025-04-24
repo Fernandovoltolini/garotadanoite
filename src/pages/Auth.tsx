@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,14 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { session } = useAuth();
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (session) {
+      navigate("/dashboard");
+    }
+  }, [session, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +40,10 @@ const Auth = () => {
         variant: "destructive",
       });
     } else {
+      toast({
+        title: "Login bem-sucedido",
+        description: "Bem-vindo(a) de volta!",
+      });
       navigate("/dashboard");
     }
     
@@ -57,6 +70,7 @@ const Auth = () => {
         title: "Conta criada com sucesso!",
         description: "Verifique seu email para confirmar sua conta.",
       });
+      // Let them log in after signup
     }
     
     setLoading(false);

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
@@ -7,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/components/ui/use-toast";
 import { Camera, Upload, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DocumentImage {
   id: string;
@@ -40,8 +41,10 @@ const DocumentVerification = () => {
     }
   ]);
   
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
     if (e.target.files && e.target.files[0]) {
@@ -64,7 +67,17 @@ const DocumentVerification = () => {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (!user) {
+      toast({
+        title: "Você precisa estar logado",
+        description: "Por favor, faça login para enviar seus documentos.",
+        variant: "destructive"
+      });
+      navigate("/auth");
+      return;
+    }
+
     // Check if all documents are uploaded
     const allUploaded = documentImages.every(img => img.file);
     
@@ -77,12 +90,75 @@ const DocumentVerification = () => {
       return;
     }
     
-    toast({
-      title: "Documentos enviados",
-      description: "Seus documentos foram enviados com sucesso. Você pode continuar criando seu anúncio.",
-    });
+    setIsUploading(true);
     
-    navigate("/anunciar");
+    try {
+      // Upload files to storage
+      const frontPath = `verification/${user.id}/front_${Date.now()}`;
+      const backPath = `verification/${user.id}/back_${Date.now()}`;
+      const selfiePath = `verification/${user.id}/selfie_${Date.now()}`;
+      
+      const frontFile = documentImages.find(img => img.id === "front")?.file;
+      const backFile = documentImages.find(img => img.id === "back")?.file;
+      const selfieFile = documentImages.find(img => img.id === "selfie")?.file;
+      
+      if (!frontFile || !backFile || !selfieFile) {
+        throw new Error("Files missing");
+      }
+      
+      const frontUpload = await supabase.storage
+        .from('verifications')
+        .upload(frontPath, frontFile);
+        
+      const backUpload = await supabase.storage
+        .from('verifications')
+        .upload(backPath, backFile);
+        
+      const selfieUpload = await supabase.storage
+        .from('verifications')
+        .upload(selfiePath, selfieFile);
+        
+      if (frontUpload.error || backUpload.error || selfieUpload.error) {
+        throw new Error("Error uploading files");
+      }
+      
+      // Get public URLs
+      const frontUrl = supabase.storage.from('verifications').getPublicUrl(frontPath).data.publicUrl;
+      const backUrl = supabase.storage.from('verifications').getPublicUrl(backPath).data.publicUrl;
+      const selfieUrl = supabase.storage.from('verifications').getPublicUrl(selfiePath).data.publicUrl;
+      
+      // Save document references
+      const { error } = await supabase
+        .from('verification_documents')
+        .insert({
+          user_id: user.id,
+          document_front_url: frontUrl,
+          document_back_url: backUrl,
+          document_selfie_url: selfieUrl,
+          status: 'pending'
+        });
+        
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Documentos enviados",
+        description: "Seus documentos foram enviados com sucesso e serão analisados em breve.",
+      });
+      
+      // Redirect to dashboard after submitting documents
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error uploading documents:", error);
+      toast({
+        title: "Erro ao enviar documentos",
+        description: "Ocorreu um erro ao enviar seus documentos. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -172,8 +248,9 @@ const DocumentVerification = () => {
                   onClick={handleContinue}
                   className="w-full bg-brand-red hover:bg-red-900 text-white" 
                   size="lg"
+                  disabled={isUploading}
                 >
-                  Enviar Documentos e Continuar
+                  {isUploading ? "Enviando documentos..." : "Enviar Documentos e Continuar"}
                 </Button>
               </div>
             </CardContent>

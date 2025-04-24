@@ -1,11 +1,13 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Upload, CheckCircle, FileText } from "lucide-react";
 import PaymentModal from "@/components/payment/PaymentModal";
 
@@ -16,19 +18,72 @@ const Verification = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [planDetails, setPlanDetails] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
 
-  // Retrieve selected plan and duration from localStorage
-  const selectedPlan = localStorage.getItem("selectedPlan");
-  const selectedDuration = localStorage.getItem("selectedDuration");
-
-  // Mock plan data (in a real app, this would be fetched from the database)
-  const planDetails = {
-    name: "Plano Premium",
-    duration: "3 dias",
-    amount: 150
-  };
+  // Fetch the selected plan details from the database
+  useEffect(() => {
+    const fetchPlanDetails = async () => {
+      const planId = localStorage.getItem("selectedPlan");
+      const planDuration = localStorage.getItem("selectedDuration");
+      
+      if (planId) {
+        const { data, error } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('id', planId)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching plan:", error);
+          // Fallback to default plan data
+          setPlanDetails({
+            name: "Plano Premium",
+            duration: "3 dias",
+            amount: 150
+          });
+        } else if (data) {
+          setPlanDetails({
+            id: data.id,
+            name: data.name,
+            duration: `${data.duration_days} dias`,
+            amount: data.price
+          });
+        }
+      } else {
+        // Fallback to default plan data if no plan is selected
+        setPlanDetails({
+          name: "Plano Premium",
+          duration: "3 dias",
+          amount: 150
+        });
+      }
+    };
+    
+    fetchPlanDetails();
+    
+    // Check if the user has already submitted verification documents
+    const checkVerificationStatus = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('verification_documents')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+        
+      if (!error && data && data.length > 0) {
+        // User has already submitted documents
+        setVerificationComplete(true);
+      }
+    };
+    
+    checkVerificationStatus();
+  }, [user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>) => {
     if (e.target.files && e.target.files[0]) {
@@ -36,8 +91,18 @@ const Verification = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Você precisa estar logado",
+        description: "Por favor, faça login para enviar seus documentos.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
     
     if (!documentFront || !documentBack || !documentSelfie) {
       toast({
@@ -50,16 +115,63 @@ const Verification = () => {
     
     setIsUploading(true);
     
-    // Simulate upload process
-    setTimeout(() => {
-      setIsUploading(false);
-      setVerificationComplete(true);
+    try {
+      // Upload files to storage
+      const frontPath = `verification/${user.id}/front_${Date.now()}`;
+      const backPath = `verification/${user.id}/back_${Date.now()}`;
+      const selfiePath = `verification/${user.id}/selfie_${Date.now()}`;
       
+      const frontUpload = await supabase.storage
+        .from('verifications')
+        .upload(frontPath, documentFront);
+        
+      const backUpload = await supabase.storage
+        .from('verifications')
+        .upload(backPath, documentBack);
+        
+      const selfieUpload = await supabase.storage
+        .from('verifications')
+        .upload(selfiePath, documentSelfie);
+        
+      if (frontUpload.error || backUpload.error || selfieUpload.error) {
+        throw new Error("Erro ao enviar os arquivos");
+      }
+      
+      // Get public URLs
+      const frontUrl = supabase.storage.from('verifications').getPublicUrl(frontPath).data.publicUrl;
+      const backUrl = supabase.storage.from('verifications').getPublicUrl(backPath).data.publicUrl;
+      const selfieUrl = supabase.storage.from('verifications').getPublicUrl(selfiePath).data.publicUrl;
+      
+      // Save document references in the database
+      const { error } = await supabase
+        .from('verification_documents')
+        .insert({
+          user_id: user.id,
+          document_front_url: frontUrl,
+          document_back_url: backUrl,
+          document_selfie_url: selfieUrl,
+          status: 'pending'
+        });
+        
+      if (error) {
+        throw error;
+      }
+      
+      setVerificationComplete(true);
       toast({
         title: "Documentos enviados com sucesso",
         description: "Seus documentos foram recebidos e serão analisados em breve.",
       });
-    }, 2000);
+    } catch (err) {
+      console.error("Error uploading documents:", err);
+      toast({
+        title: "Erro ao enviar documentos",
+        description: "Ocorreu um erro ao enviar seus documentos. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleContinueToPayment = () => {
@@ -71,7 +183,7 @@ const Verification = () => {
       title: "Pagamento concluído",
       description: "Seu anúncio está sendo processado e em breve estará disponível.",
     });
-    navigate("/auth");
+    navigate("/dashboard");
   };
 
   return (
@@ -221,27 +333,29 @@ const Verification = () => {
                     </p>
                   </div>
                   
-                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                    <div className="flex items-center gap-3 mb-3">
-                      <FileText className="h-5 w-5 text-red-500" />
-                      <h4 className="text-lg font-medium text-white">Resumo do Plano</h4>
+                  {planDetails && (
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center gap-3 mb-3">
+                        <FileText className="h-5 w-5 text-red-500" />
+                        <h4 className="text-lg font-medium text-white">Resumo do Plano</h4>
+                      </div>
+                      
+                      <div className="flex justify-between mb-2">
+                        <span className="text-gray-400">Plano:</span>
+                        <span className="text-white">{planDetails.name}</span>
+                      </div>
+                      
+                      <div className="flex justify-between mb-2">
+                        <span className="text-gray-400">Duração:</span>
+                        <span className="text-white">{planDetails.duration}</span>
+                      </div>
+                      
+                      <div className="flex justify-between text-lg font-bold mt-3">
+                        <span className="text-gray-400">Total:</span>
+                        <span className="text-red-500">R$ {planDetails.amount}</span>
+                      </div>
                     </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <span className="text-gray-400">Plano:</span>
-                      <span className="text-white">{planDetails.name}</span>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <span className="text-gray-400">Duração:</span>
-                      <span className="text-white">{planDetails.duration}</span>
-                    </div>
-                    
-                    <div className="flex justify-between text-lg font-bold mt-3">
-                      <span className="text-gray-400">Total:</span>
-                      <span className="text-red-500">R$ {planDetails.amount}</span>
-                    </div>
-                  </div>
+                  )}
                   
                   <Button
                     onClick={handleContinueToPayment}
@@ -259,10 +373,11 @@ const Verification = () => {
       <PaymentModal
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        planName={planDetails.name}
-        planDuration={planDetails.duration}
-        amount={planDetails.amount}
+        planName={planDetails?.name || "Plano Premium"}
+        planDuration={planDetails?.duration || "3 dias"}
+        amount={planDetails?.amount || 150}
         onPaymentComplete={handlePaymentComplete}
+        useMercadoPago={true}
       />
       
       <Footer />

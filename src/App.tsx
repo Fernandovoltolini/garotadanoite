@@ -3,6 +3,7 @@ import React from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
 import Profile from "./pages/Profile";
 import PlanSelection from "./pages/PlanSelection";
@@ -17,6 +18,10 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Verification from "./pages/Verification";
+import Dashboard from "./pages/Dashboard";
+import DocumentVerification from "./pages/DocumentVerification";
+import { AuthProvider } from "./hooks/useAuth";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // Create router with all necessary routes
 const router = createBrowserRouter([
@@ -33,40 +38,88 @@ const router = createBrowserRouter([
     element: <PlanSelection />,
   },
   {
-    path: "/anunciar",
-    element: <Advertise />,
-  },
-  {
-    path: "/admin",
-    element: <Admin />,
-  },
-  {
-    path: "/admin/novos-anuncios",
-    element: <AdminNewAds />,
-  },
-  {
-    path: "/admin/criar-anuncio",
-    element: <AdminCreateAd />
-  },
-  {
-    path: "/admin/anuncios",
-    element: <AdminAdvertOptions />
-  },
-  {
-    path: "/admin/blog",
-    element: <AdminBlogPosts />
-  },
-  {
-    path: "/admin/usuarios",
-    element: <AdminUsers />
-  },
-  {
     path: "/auth",
-    element: <Auth />
+    element: <Auth />,
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/anunciar",
+    element: (
+      <ProtectedRoute>
+        <Advertise />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/verificacao-documentos",
+    element: (
+      <ProtectedRoute>
+        <DocumentVerification />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/verificacao",
-    element: <Verification />
+    element: (
+      <ProtectedRoute>
+        <Verification />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute isAdmin={true}>
+        <Admin />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/novos-anuncios",
+    element: (
+      <ProtectedRoute isAdmin={true}>
+        <AdminNewAds />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/criar-anuncio",
+    element: (
+      <ProtectedRoute isAdmin={true}>
+        <AdminCreateAd />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/anuncios",
+    element: (
+      <ProtectedRoute isAdmin={true}>
+        <AdminAdvertOptions />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/blog",
+    element: (
+      <ProtectedRoute isAdmin={true}>
+        <AdminBlogPosts />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/usuarios",
+    element: (
+      <ProtectedRoute isAdmin={true}>
+        <AdminUsers />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "*",
@@ -75,7 +128,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
 export default App;
