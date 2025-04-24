@@ -1,22 +1,74 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function QuickSearch() {
   const navigate = useNavigate();
-  const [cidade, setCidade] = useState("");
-  const [tipoServico, setTipoServico] = useState("");
-  const [faixaEtaria, setFaixaEtaria] = useState("");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [ageRange, setAgeRange] = useState("");
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch states on component mount
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('states')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        setStates(data || []);
+      } catch (error) {
+        console.error("Error fetching states:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStates();
+  }, []);
+
+  // Fetch cities when state is selected
+  useEffect(() => {
+    if (!state) {
+      setCities([]);
+      setCity("");
+      return;
+    }
+
+    const fetchCities = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cities')
+          .select('*')
+          .eq('state_id', state)
+          .eq('is_active', true)
+          .order('name');
+        
+        if (error) throw error;
+        setCities(data || []);
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+
+    fetchCities();
+  }, [state]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (cidade) params.append("cidade", cidade);
-    if (tipoServico) params.append("servico", tipoServico);
-    if (faixaEtaria) params.append("idade", faixaEtaria);
+    if (state) params.append("estado", state);
+    if (city) params.append("cidade", city);
+    if (ageRange) params.append("idade", ageRange);
     
     navigate(`/busca?${params.toString()}`);
   };
@@ -29,48 +81,46 @@ export default function QuickSearch() {
       
       <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="space-y-2">
-          <label htmlFor="cidade" className="text-sm text-gray-300">
+          <label htmlFor="state" className="text-sm text-gray-300">
+            Estado
+          </label>
+          <Select value={state} onValueChange={setState}>
+            <SelectTrigger className="bg-black/70 border-gray-700 focus:ring-brand-red">
+              <SelectValue placeholder="Selecione o estado" />
+            </SelectTrigger>
+            <SelectContent className="bg-black border-gray-700 text-white">
+              {states.map((stateItem) => (
+                <SelectItem key={stateItem.id} value={stateItem.id}>
+                  {stateItem.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="city" className="text-sm text-gray-300">
             Cidade
           </label>
-          <Select value={cidade} onValueChange={setCidade}>
+          <Select value={city} onValueChange={setCity} disabled={!state || cities.length === 0}>
             <SelectTrigger className="bg-black/70 border-gray-700 focus:ring-brand-red">
-              <SelectValue placeholder="Selecione a cidade" />
+              <SelectValue placeholder={!state ? "Selecione o estado primeiro" : "Selecione a cidade"} />
             </SelectTrigger>
             <SelectContent className="bg-black border-gray-700 text-white">
-              <SelectItem value="sao-paulo">São Paulo</SelectItem>
-              <SelectItem value="rio-de-janeiro">Rio de Janeiro</SelectItem>
-              <SelectItem value="belo-horizonte">Belo Horizonte</SelectItem>
-              <SelectItem value="brasilia">Brasília</SelectItem>
-              <SelectItem value="salvador">Salvador</SelectItem>
-              <SelectItem value="recife">Recife</SelectItem>
-              <SelectItem value="fortaleza">Fortaleza</SelectItem>
+              {cities.map((cityItem) => (
+                <SelectItem key={cityItem.id} value={cityItem.id}>
+                  {cityItem.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
-          <label htmlFor="tipoServico" className="text-sm text-gray-300">
-            Tipo de Serviço
-          </label>
-          <Select value={tipoServico} onValueChange={setTipoServico}>
-            <SelectTrigger className="bg-black/70 border-gray-700 focus:ring-brand-red">
-              <SelectValue placeholder="Selecione o serviço" />
-            </SelectTrigger>
-            <SelectContent className="bg-black border-gray-700 text-white">
-              <SelectItem value="acompanhante">Acompanhante</SelectItem>
-              <SelectItem value="massagem">Massagem</SelectItem>
-              <SelectItem value="encontro">Encontro</SelectItem>
-              <SelectItem value="eventos">Eventos</SelectItem>
-              <SelectItem value="viagens">Viagens</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <label htmlFor="faixaEtaria" className="text-sm text-gray-300">
+          <label htmlFor="ageRange" className="text-sm text-gray-300">
             Faixa Etária
           </label>
-          <Select value={faixaEtaria} onValueChange={setFaixaEtaria}>
+          <Select value={ageRange} onValueChange={setAgeRange}>
             <SelectTrigger className="bg-black/70 border-gray-700 focus:ring-brand-red">
               <SelectValue placeholder="Selecione a idade" />
             </SelectTrigger>
