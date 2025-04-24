@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +25,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { states, cities, selectedState, selectedCity, setSelectedState, setSelectedCity } = useLocation();
+  const [role, setRole] = useState<string | null>(null);
 
   // If already logged in, redirect to dashboard
   useEffect(() => {
@@ -38,7 +38,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data: { user } } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -50,11 +50,26 @@ const Auth = () => {
         variant: "destructive",
       });
     } else {
-      toast({
-        title: "Login bem-sucedido",
-        description: "Bem-vindo(a) de volta!",
-      });
-      navigate("/dashboard");
+      // Get user role from profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user?.id)
+        .single();
+
+      if (profile?.role === 'admin') {
+        toast({
+          title: "Login bem-sucedido",
+          description: "Bem-vindo(a) administrador!",
+        });
+        navigate("/admin");
+      } else {
+        toast({
+          title: "Login bem-sucedido",
+          description: "Bem-vindo(a) de volta!",
+        });
+        navigate("/dashboard");
+      }
     }
     
     setLoading(false);
